@@ -6,6 +6,9 @@ import numpy as np
 import regex as re
 
 
+def kurtosis_func(x): return x.kurt()
+
+
 class Preprocessor:
     def __init__(self, seed):
         self.seed = seed
@@ -28,8 +31,8 @@ class Preprocessor:
                              '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '`', '~',
                              '|', '!', '\\']
 
-#         self.gaps = [1, 3, 6, 10, 15, 21, 28, 36, 45]
-        self.gaps = [1, 2, 3, 4, 5, 10, 20, 50, 100]
+        self.gaps = [1]
+        # self.gaps = [1, 2, 3, 4, 5, 10, 20, 50, 100]
 
         self.idf = defaultdict(float)
 
@@ -243,7 +246,7 @@ class Preprocessor:
                 ('event_id', ['max']),
                 ('up_time', ['max']),
                 ('action_time', ['max', 'min', 'mean', 'std',
-                 'quantile', 'sem', 'sum', 'skew', pd.DataFrame.kurt]),
+                 'quantile', 'sem', 'sum', 'skew', kurtosis_func]),
                 ('activity', ['nunique']),
                 ('down_event', ['nunique']),
                 ('up_event', ['nunique']),
@@ -257,20 +260,20 @@ class Preprocessor:
                 if gap == 1:
                     feats_stat.extend([
                         (f'action_time_gap{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'quantile', 'skew', pd.DataFrame.kurt]),
+                         'sum', 'max', 'min', 'mean', 'std', 'quantile', 'skew', kurtosis_func]),
                         (f'cursor_position_change{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'quantile', 'skew', pd.DataFrame.kurt]),
+                         'sum', 'max', 'min', 'mean', 'std', 'quantile', 'skew', kurtosis_func]),
                         (f'word_count_change{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'quantile', 'skew', pd.DataFrame.kurt])
+                         'sum', 'max', 'min', 'mean', 'std', 'quantile', 'skew', kurtosis_func])
                     ])
                 else:
                     feats_stat.extend([
                         (f'action_time_gap{gap}', [
-                         'max', 'min', 'mean', 'std', 'quantile', 'skew', pd.DataFrame.kurt]),
+                         'max', 'min', 'mean', 'std', 'quantile', 'skew', kurtosis_func]),
                         (f'cursor_position_change{gap}', [
-                         'max', 'min', 'mean', 'std', 'quantile', 'skew', pd.DataFrame.kurt]),
+                         'max', 'min', 'mean', 'std', 'quantile', 'skew', kurtosis_func]),
                         (f'word_count_change{gap}', [
-                         'max', 'min', 'mean', 'std', 'quantile', 'skew', pd.DataFrame.kurt])
+                         'max', 'min', 'mean', 'std', 'quantile', 'skew', kurtosis_func])
                     ])
 
         if self.device == "cuda":
@@ -348,7 +351,7 @@ class Preprocessor:
         tmp_df = self.get_change_words(df)
         feats = pd.merge(feats, tmp_df, on='id', how='left')
 
-        feats = feats.fillna(0.0)
+        # feats = feats.fillna(0.0)
 
         print("Engineering ratios data")
         feats['word_time_ratio'] = feats['word_count_max'] / \

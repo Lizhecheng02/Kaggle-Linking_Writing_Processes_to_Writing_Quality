@@ -44,7 +44,7 @@ class TimeProcessor:
         test_agg_fe_df2.reset_index(inplace=True)
         return test_agg_fe_df2
 
-    def processor(self, train_logs, test_logs):
+    def additional_processor(self, train_logs, test_logs):
         data = []
 
         for logs in [train_logs, test_logs]:
@@ -83,4 +83,4 @@ class TimeProcessor:
                 'pauses_3_sec': pauses_3_sec,
             }).reset_index(drop=True))
 
-            return data
+        return data

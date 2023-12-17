@@ -13,16 +13,18 @@ def q3(x):
 
 class EssayProcessor:
     def __init__(self):
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu")
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        def kurtosis_func(x): return x.kurt()
 
         if self.device == "cpu":
             self.SENT_AGGREGATIONS = [
                 'count', 'mean', 'std', 'min', 'max',
-                q1, 'median', q3, 'skew', pd.DataFrame.kurt
+                q1, 'median', q3, 'skew', kurtosis_func
             ]
             self.PARA_AGGREGATIONS = [
-                'count', 'mean', 'std', 'min', 'max', 'first', 'last', 'sem', q1, 'median', q3, 'skew', pd.DataFrame.kurt, 'sum'
+                'count', 'mean', 'std', 'min', 'max', 'first',
+                'last', 'sem', q1, 'median', q3, 'skew', 'sum', kurtosis_func
             ]
         elif self.device == "cuda":
             self.SENT_AGGREGATIONS = [
