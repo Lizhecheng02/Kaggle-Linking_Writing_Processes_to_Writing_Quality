@@ -33,6 +33,8 @@ kaggle datasets download -d hiarsl/writing-quality-challenge-constructed-essays
 unzip writing-quality-challenge-constructed-essays.zip
 ```
 
+<img src="C:\Users\86183\Desktop\Weixin Image_20231217143813.png" alt="Final Look" style="zoom: 150%;" />
+
 
 
 ### Run Codes
