@@ -1,0 +1,9 @@
+scikit-learn
+pytorch_tabnet
+tensorflow
+lightgbm == 4.1.0
+joblib
+tqdm
+torch
+optuna
+pandas == 2.1.4
