@@ -34,13 +34,13 @@ train_essays.index.name = None
 train_essays.drop(columns=["Unnamed: 0"], inplace=True)
 print(train_essays.head())
 
-essay_processr = EssayProcessor()
-train_sent_agg_df = essay_processr.sentence_processor(df=train_essays)
-train_paragraph_agg_df = essay_processr.paragraph_processor(df=train_essays)
+essay_processor = EssayProcessor()
+train_sent_agg_df = essay_processor.sentence_processor(df=train_essays)
+train_paragraph_agg_df = essay_processor.paragraph_processor(df=train_essays)
 
 test_essays = getEssays(test_logs)
-test_sent_agg_df = essay_processr.sentence_processor(df=test_essays)
-test_paragraph_agg_df = essay_processr.paragraph_processor(df=test_essays)
+test_sent_agg_df = essay_processor.sentence_processor(df=test_essays)
+test_paragraph_agg_df = essay_processor.paragraph_processor(df=test_essays)
 
 preprocessor = Preprocessor(seed=42)
 train_feats = preprocessor.make_feats(train_logs)
@@ -87,14 +87,21 @@ target_col = ['score']
 drop_cols = ['id']
 train_cols = [col for col in train_feats.columns if col not in target_col + drop_cols]
 
+count_label0 = 0
+count_label1 = 0
 def create_binary_score(score):
-    if score <= 1.5 or score >= 5:
+    global count_label0, count_label1
+    if score <= 1.5 or score >= 4.5:
+        count_label0 += 1
         return 0
     else:
+        count_label1 += 1
         return 1
     
 train_feats['score'] = train_feats['score'].apply(create_binary_score)
 train_feats['score'] = train_feats['score'].astype('category')
+print("Number of label0:", count_label0)
+print("Number of label1:", count_label1)
 
 TEST_PREDS = np.zeros((len(test_feats), 1))
 
@@ -136,7 +143,7 @@ for i in range(EPOCHS):
             "verbosity": 1,
             **best_params
         }
-        weights = np.where(y_train == 0, 10, 1)
+        weights = np.where(y_train == 0, 2, 1)
 
         model = lgb.LGBMClassifier(**params)
         early_stopping_callback = lgb.early_stopping(100, first_metric_only=True, verbose=True)
