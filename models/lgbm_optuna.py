@@ -34,13 +34,13 @@ train_essays.index.name = None
 train_essays.drop(columns=["Unnamed: 0"], inplace=True)
 print(train_essays.head())
 
-essay_processr = EssayProcessor()
-train_sent_agg_df = essay_processr.sentence_processor(df=train_essays)
-train_paragraph_agg_df = essay_processr.paragraph_processor(df=train_essays)
+essay_processor = EssayProcessor()
+train_sent_agg_df = essay_processor.sentence_processor(df=train_essays)
+train_paragraph_agg_df = essay_processor.paragraph_processor(df=train_essays)
 
 test_essays = getEssays(test_logs)
-test_sent_agg_df = essay_processr.sentence_processor(df=test_essays)
-test_paragraph_agg_df = essay_processr.paragraph_processor(df=test_essays)
+test_sent_agg_df = essay_processor.sentence_processor(df=test_essays)
+test_paragraph_agg_df = essay_processor.paragraph_processor(df=test_essays)
 
 preprocessor = Preprocessor(seed=42)
 train_feats = preprocessor.make_feats(train_logs)
