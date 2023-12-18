@@ -1,0 +1,45 @@
+300+ features lgbm:
+    Avg Loss: 0.612421232750749
+    Best trial:
+    Value: 0.6110391799999495
+    Params: 
+    reg_alpha: 0.1241700596202453
+    reg_lambda: 4.518579097665047
+    colsample_bytree: 0.39831976927300156
+    subsample: 0.8495591213881012
+    num_leaves: 17
+    max_depth: 33
+    min_child_samples: 24
+    n_estimators: 12738
+    learning_rate: 0.002
+
+600+ features lgbm:
+    Avg Loss: 0.6109339037835725
+    Best trial:
+    Value: 0.6108203210661229
+    Params: 
+    reg_alpha: 2.9495836326264486
+    reg_lambda: 2.649810493342855
+    colsample_bytree: 0.38167858273202904
+    subsample: 0.5433416048927803
+    num_leaves: 18
+    max_depth: 21
+    min_child_samples: 21
+    n_estimators: 16354
+    learning_rate: 0.0015
+
+700+ features lgbm:
+    Avg Loss: 0.6155816447292519
+    Best trial:
+    Value: 0.6113371198295172
+    Params: 
+    reg_alpha: 1.685747620346022
+    reg_lambda: 0.0766734575699568
+    colsample_bytree: 0.2997634229266678
+    subsample: 0.8665035220491352
+    num_leaves: 13
+    max_depth: 9
+    min_child_samples: 17
+    n_estimators: 12392
+    learning_rate: 0.0015
+
