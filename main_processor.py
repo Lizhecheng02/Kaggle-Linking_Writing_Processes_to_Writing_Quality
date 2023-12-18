@@ -205,6 +205,96 @@ class Preprocessor:
         tmp_df = tmp_df.fillna(0.0)
         tmp_df.drop(['text_change', 'left_word'], axis=1, inplace=True)
         return tmp_df
+    
+    def action_time_events_activities_all(self, df):
+        def action_time_events_activities(group):
+            features = {}
+            for event in self.events:
+                event_group = group[group['down_event'] == event]
+                features[f'down_{event}_id_mean'] = event_group['action_time'].mean()
+                features[f'down_{event}_id_std'] = event_group['action_time'].std()
+                features[f'down_{event}_id_min'] = event_group['action_time'].min()
+                features[f'down_{event}_id_max'] = event_group['action_time'].max()
+                features[f'down_{event}_id_median'] = event_group['action_time'].median()
+                features[f'down_{event}_id_skew'] = event_group['action_time'].skew()
+                features[f'down_{event}_id_kurt'] = event_group['action_time'].kurt()
+                features[f'down_{event}_id_25%'] = event_group['action_time'].quantile(0.25)
+                features[f'down_{event}_id_75%'] = event_group['action_time'].quantile(0.75)
+
+            for event in self.events:
+                event_group = group[group['up_event'] == event]
+                features[f'up_{event}_id_mean'] = event_group['action_time'].mean()
+                features[f'up_{event}_id_std'] = event_group['action_time'].std()
+                features[f'up_{event}_id_min'] = event_group['action_time'].min()
+                features[f'up_{event}_id_max'] = event_group['action_time'].max()
+                features[f'up_{event}_id_median'] = event_group['action_time'].median()
+                features[f'up_{event}_id_skew'] = event_group['action_time'].skew()
+                features[f'up_{event}_id_kurt'] = event_group['action_time'].kurt()
+                features[f'up_{event}_id_25%'] = event_group['action_time'].quantile(0.25)
+                features[f'up_{event}_id_75%'] = event_group['action_time'].quantile(0.75)
+
+            for activity in self.activities:
+                activity_group = group[group['activity'] == activity]
+                features[f'{activity}_id_mean'] = activity_group['action_time'].mean()
+                features[f'{activity}_id_std'] = activity_group['action_time'].std()
+                features[f'{activity}_id_min'] = activity_group['action_time'].min()
+                features[f'{activity}_id_max'] = activity_group['action_time'].max()
+                features[f'{activity}_id_median'] = activity_group['action_time'].median()
+                features[f'{activity}_id_skew'] = activity_group['action_time'].skew()
+                features[f'{activity}_id_kurt'] = activity_group['action_time'].kurt()
+                features[f'{activity}_id_25%'] = activity_group['action_time'].quantile(0.25)
+                features[f'{activity}_id_75%'] = activity_group['action_time'].quantile(0.75)
+
+            return pd.Series(features)
+        
+        return df.group('id').apply(action_time_events_activities)
+    
+    def idle_time_events_activities_all(self, df):
+        
+        df['idle_time'] = df.groupby('id')['down_time'].shift(-1)
+        df['idle_time'] = df['idle_time'].fillna(0.0)
+
+        def idle_time_events_activities(group):
+            features = {}
+            for event in self.events:
+                event_group = group[group['down_event'] == event]
+                features[f'idle_down_{event}_id_mean'] = event_group['idle_time'].mean()
+                features[f'idle_down_{event}_id_std'] = event_group['idle_time'].std()
+                features[f'idle_down_{event}_id_min'] = event_group['idle_time'].min()
+                features[f'idle_down_{event}_id_max'] = event_group['idle_time'].max()
+                features[f'idle_down_{event}_id_median'] = event_group['idle_time'].median()
+                features[f'idle_down_{event}_id_skew'] = event_group['idle_time'].skew()
+                features[f'idle_down_{event}_id_kurt'] = event_group['idle_time'].kurt()
+                features[f'idle_down_{event}_id_25%'] = event_group['idle_time'].quantile(0.25)
+                features[f'idle_down_{event}_id_75%'] = event_group['idle_time'].quantile(0.75)
+
+            for event in self.events:
+                event_group = group[group['up_event'] == event]
+                features[f'idle_up_{event}_id_mean'] = event_group['idle_time'].mean()
+                features[f'idle_up_{event}_id_std'] = event_group['idle_time'].std()
+                features[f'idle_up_{event}_id_min'] = event_group['idle_time'].min()
+                features[f'idle_up_{event}_id_max'] = event_group['idle_time'].max()
+                features[f'idle_up_{event}_id_median'] = event_group['idle_time'].median()
+                features[f'idle_up_{event}_id_skew'] = event_group['idle_time'].skew()
+                features[f'idle_up_{event}_id_kurt'] = event_group['idle_time'].kurt()
+                features[f'idle_up_{event}_id_25%'] = event_group['idle_time'].quantile(0.25)
+                features[f'idle_up_{event}_id_75%'] = event_group['idle_time'].quantile(0.75)
+
+            for activity in self.activities:
+                activity_group = group[group['activity'] == activity]
+                features[f'idle_{activity}_id_mean'] = activity_group['idle_time'].mean()
+                features[f'idle_{activity}_id_std'] = activity_group['idle_time'].std()
+                features[f'idle_{activity}_id_min'] = activity_group['idle_time'].min()
+                features[f'idle_{activity}_id_max'] = activity_group['idle_time'].max()
+                features[f'idle_{activity}_id_median'] = activity_group['idle_time'].median()
+                features[f'idle_{activity}_id_skew'] = activity_group['idle_time'].skew()
+                features[f'idle_{activity}_id_kurt'] = activity_group['idle_time'].kurt()
+                features[f'idle_{activity}_id_25%'] = activity_group['idle_time'].quantile(0.25)
+                features[f'idle_{activity}_id_75%'] = activity_group['idle_time'].quantile(0.75)
+
+            return pd.Series(features)
+        
+        return df.group('id').apply(idle_time_events_activities)
 
     def make_feats(self, df):
         feats = pd.DataFrame({'id': df['id'].unique().tolist()})
@@ -349,6 +439,10 @@ class Preprocessor:
 
         print("Engineering change words data")
         tmp_df = self.get_change_words(df)
+        feats = pd.merge(feats, tmp_df, on='id', how='left')
+
+        tmp_df = self.action_time_events_activities_all(df)
+        tmp_df = tmp_df.reset_index()
         feats = pd.merge(feats, tmp_df, on='id', how='left')
 
         # feats = feats.fillna(0.0)
