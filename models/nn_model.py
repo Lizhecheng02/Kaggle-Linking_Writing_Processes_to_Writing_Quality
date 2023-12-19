@@ -103,10 +103,10 @@ for column in tqdm(train_feats[train_cols].columns):
         if DO_SCALER:
             train_feats[column] = scaler.fit_transform(train_feats[column].values.reshape(-1, 1))
             test_feats[column] = scaler.transform(test_feats[column].values.reshape(-1, 1))
-            print("Successfully Excute!")
+            # print("Successfully Excute!")
         else:
             output = scaler.fit_transform(train_feats[column].values.reshape(-1, 1))
-            print("Successfully Output!")
+            # print("Successfully Output!")
     except:
         print(column)
 
