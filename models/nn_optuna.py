@@ -28,6 +28,10 @@ test_logs = pd.read_csv("../test_logs.csv")
 train_scores = pd.read_csv("../train_scores.csv")
 print(train_logs.head())
 
+for column in ['down_time', 'up_time', 'action_time']:
+    train_logs[column] = train_logs[column] / 1000.0
+    test_logs[column] = test_logs[column] / 1000.0
+
 train_essays = pd.read_csv('../train_essays_02.csv')
 train_essays.index = train_essays["Unnamed: 0"]
 train_essays.index.name = None
