@@ -29,11 +29,11 @@ class EssayProcessor:
         elif self.device == "cuda":
             self.SENT_AGGREGATIONS = [
                 'count', 'mean', 'std', 'min',
-                'max', 'median', 'skew', 'quantile'
+                'max', 'median', 'skew'
             ]
             self.PARA_AGGREGATIONS = [
                 'count', 'mean', 'std', 'min', 'max',
-                'first', 'last', 'sem', 'median', 'quantile', 'skew', 'sum'
+                'first', 'last', 'sem', 'median', 'skew', 'sum'
             ]
 
     def split_essays_into_sentences(self, df):
