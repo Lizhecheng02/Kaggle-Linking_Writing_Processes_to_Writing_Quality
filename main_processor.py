@@ -418,34 +418,34 @@ class Preprocessor:
                 ('event_id', ['max']),
                 ('up_time', ['max']),
                 ('action_time', ['max', 'min', 'mean',
-                 'std', 'median', 'sem', 'sum', 'skew']),
+                 'std', 'median', 'sem', 'sum', 'skew', kurtosis_func, q1, q3]),
                 ('activity', ['nunique']),
                 ('down_event', ['nunique']),
                 ('up_event', ['nunique']),
                 ('text_change', ['nunique']),
                 ('cursor_position', ['nunique',
-                 'max', 'median', 'sem', 'mean']),
-                ('word_count', ['nunique', 'max', 'median', 'sem', 'mean'])
+                 'max', 'median', 'sem', 'mean', q1, q3]),
+                ('word_count', ['nunique', 'max', 'median', 'sem', 'mean', q1, q3])
             ]
 
             for gap in self.gaps:
                 if gap == 1:
                     feats_stat.extend([
                         (f'action_time_gap{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew']),
+                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func]),
                         (f'cursor_position_change{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew']),
+                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func]),
                         (f'word_count_change{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew'])
+                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func])
                     ])
                 else:
                     feats_stat.extend([
                         (f'action_time_gap{gap}', [
-                         'max', 'min', 'mean', 'std', 'median', 'skew']),
+                         'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func]),
                         (f'cursor_position_change{gap}', [
-                         'max', 'min', 'mean', 'std', 'median', 'skew']),
+                         'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func]),
                         (f'word_count_change{gap}', [
-                         'max', 'min', 'mean', 'std', 'median', 'skew'])
+                         'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func])
                     ])
 
         pbar = tqdm(feats_stat)
