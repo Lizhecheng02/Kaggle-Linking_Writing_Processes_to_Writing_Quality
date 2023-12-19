@@ -7,3 +7,8 @@ tqdm
 torch
 optuna
 pandas == 2.1.4
+kaggle
+regex
+matplotlib
+catboost
+xgboost

@@ -108,8 +108,7 @@ best_params = {
     'learning_rate': 0.002,
     'depth': 6, 
     'thread_count': 4,
-    'min_child_samples': 7,
-    'max_leaves': 8
+    'min_child_samples': 7
 }
 
 for i in range(EPOCHS):

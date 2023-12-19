@@ -110,7 +110,6 @@ def objective(trial):
         'depth': trial.suggest_int('depth', 1, 16),
         'iterations': trial.suggest_int('iterations', 1000, 15000),
         'min_child_samples': trial.suggest_int('min_child_samples', 1, 20),
-        'max_leaves': trial.suggest_int('max_leaves', 1, 20),
         'thread_count': 4
     }
 
