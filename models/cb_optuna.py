@@ -108,7 +108,7 @@ def objective(trial):
         'subsample': trial.suggest_float('subsample', 0.1, 1.0),
         'learning_rate': trial.suggest_float('learning_rate', 1e-5, 1e-1, log=True),
         'depth': trial.suggest_int('depth', 1, 16),
-        'iterations': trial.suggest_int('iterations', 5000, 20000),
+        'iterations': trial.suggest_int('iterations', 1000, 15000),
         'min_child_samples': trial.suggest_int('min_child_samples', 1, 20),
         'max_leaves': trial.suggest_int('max_leaves', 1, 20),
         'thread_count': 4
@@ -153,7 +153,7 @@ def objective(trial):
     return np.mean(scores)
 
 study = optuna.create_study(direction="minimize")
-study.optimize(objective, n_trials=20)
+study.optimize(objective, n_trials=30)
 
 print("Best trial:")
 trial = study.best_trial

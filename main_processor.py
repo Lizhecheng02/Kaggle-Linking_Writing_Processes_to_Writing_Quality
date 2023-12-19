@@ -441,17 +441,17 @@ class Preprocessor:
         tmp_df = self.get_change_words(df)
         feats = pd.merge(feats, tmp_df, on='id', how='left')
 
-        print("Engineering action time features")
-        tmp_df = self.action_time_events_activities_all(df)
-        tmp_df = tmp_df.reset_index()
-        feats = pd.merge(feats, tmp_df, on='id', how='left')
+        # print("Engineering action time features")
+        # tmp_df = self.action_time_events_activities_all(df)
+        # tmp_df = tmp_df.reset_index()
+        # feats = pd.merge(feats, tmp_df, on='id', how='left')
 
-        print("Engineering idle time features")
-        tmp_df = self.idle_time_events_activities_all(df)
-        tmp_df = tmp_df.reset_index()
-        feats = pd.merge(feats, tmp_df, on='id', how='left')
+        # print("Engineering idle time features")
+        # tmp_df = self.idle_time_events_activities_all(df)
+        # tmp_df = tmp_df.reset_index()
+        # feats = pd.merge(feats, tmp_df, on='id', how='left')
 
-        feats = feats.fillna(0.0)
+        # feats = feats.fillna(0.0)
 
         print("Engineering ratios data")
         feats['word_time_ratio'] = feats['word_count_max'] / \
