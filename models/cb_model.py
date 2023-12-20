@@ -158,4 +158,4 @@ for i in range(EPOCHS):
     
 print("Avg Loss:", np.mean(scores))
 
-print('metric XGB = {:.5f}'.format(metrics.mean_squared_error(train_feats[target_col], preds[:, 0], squared=False)))
+print('metric CB = {:.5f}'.format(metrics.mean_squared_error(train_feats[target_col], preds[:, 0], squared=False)))
