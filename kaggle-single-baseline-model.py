@@ -14,11 +14,11 @@ warnings.filterwarnings("ignore")
 
 
 class CFG:
-    is_train_lgbm_model = False
+    is_train_lgbm_model = True
     is_train_lgbm_optuna = False
-    is_train_xgb_model = False
+    is_train_xgb_model = True
     is_train_xgb_optuna = False
-    is_train_cb_model = False
+    is_train_cb_model = True
     is_train_cb_optuna = False
 
 
@@ -387,7 +387,7 @@ def train_lgbm_model(train_feats, test_feats):
 
     os.makedirs('../baseline_lgb_models', exist_ok=True)
 
-    EPOCHS = 5
+    EPOCHS = 1
     SPLIT = 10
 
     test_prediction_list = []
@@ -466,7 +466,7 @@ def train_xgb_model(train_feats, test_feats):
 
     os.makedirs('../baseline_xgb_models', exist_ok=True)
 
-    EPOCHS = 5
+    EPOCHS = 1
     SPLIT = 10
 
     test_prediction_list = []
@@ -544,7 +544,7 @@ def train_cb_model(train_feats, test_feats):
 
     os.makedirs('../baseline_cb_models', exist_ok=True)
 
-    EPOCHS = 5
+    EPOCHS = 1
     SPLIT = 10
 
     test_prediction_list = []
@@ -843,3 +843,22 @@ def train_cb_optuna(train_feats):
     print("Params: ")
     for key, value in trial.params.items():
         print(f"{key}: {value}")
+
+
+if CFG.is_train_lgbm_optuna:
+    train_lgbm_optuna(train_feats=data)
+
+if CFG.is_train_xgb_optuna:
+    train_xgb_optuna(train_feats=data)
+
+if CFG.is_train_cb_optuna:
+    train_cb_optuna(train_feats=data)
+
+if CFG.is_train_lgbm_model:
+    lgbm_preds = train_lgbm_model(train_feats=data, test_feats=test_feats)
+
+if CFG.is_train_xgb_model:
+    xgb_preds = train_xgb_model(train_feats=data, test_feats=test_feats)
+
+if CFG.is_train_cb_model:
+    cb_preds = train_cb_model(train_feats=data, test_feats=test_feats)
