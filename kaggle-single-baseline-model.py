@@ -10,6 +10,7 @@ import catboost as cb
 import optuna
 from scipy.stats import skew, kurtosis
 import warnings
+import json
 warnings.filterwarnings("ignore")
 
 
@@ -692,6 +693,11 @@ def train_lgbm_optuna(train_feats, test_feats):
     for key, value in trial.params.items():
         print(f"{key}: {value}")
 
+    with open('lgbm_best_params.json', 'w') as json_file:
+        json.dump(trial.params, json_file, indent=4)
+
+    print("Save LightGBM best_params to json file")
+
 
 def train_xgb_optuna(train_feats):
     os.makedirs('../baseline_xgb_models_optuna', exist_ok=True)
@@ -770,6 +776,11 @@ def train_xgb_optuna(train_feats):
     for key, value in trial.params.items():
         print(f"{key}: {value}")
 
+    with open('xgb_best_params.json', 'w') as json_file:
+        json.dump(trial.params, json_file, indent=4)
+
+    print("Save XGBoost best_params to json file")
+
 
 def train_cb_optuna(train_feats):
     os.makedirs('../baseline_cb_models_optuna', exist_ok=True)
@@ -843,6 +854,11 @@ def train_cb_optuna(train_feats):
     print("Params: ")
     for key, value in trial.params.items():
         print(f"{key}: {value}")
+
+    with open('cb_best_params.json', 'w') as json_file:
+        json.dump(trial.params, json_file, indent=4)
+
+    print("Save catboost best_params to json file")
 
 
 if CFG.is_train_lgbm_optuna:
