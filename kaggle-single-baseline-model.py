@@ -2,11 +2,25 @@ import polars as pl
 import pandas as pd
 import numpy as np
 import re
-from lightgbm import LGBMRegressor
-from sklearn.model_selection import StratifiedKFold
+import os
+from sklearn import metrics, model_selection
+import lightgbm as lgb
+import xgboost as xgb
+import catboost as cb
+import optuna
 from scipy.stats import skew, kurtosis
 import warnings
 warnings.filterwarnings("ignore")
+
+
+class CFG:
+    is_train_lgbm_model = False
+    is_train_lgbm_optuna = False
+    is_train_xgb_model = False
+    is_train_xgb_optuna = False
+    is_train_cb_model = False
+    is_train_cb_optuna = False
+
 
 num_cols = ['down_time', 'up_time', 'action_time',
             'cursor_position', 'word_count']
@@ -154,31 +168,6 @@ def dev_feats(df):
     feats = feats.join(temp, on='id', how='left')
 
     return feats
-
-
-def train_valid_split(data_x, data_y, train_idx, valid_idx):
-    x_train = data_x.iloc[train_idx]
-    y_train = data_y[train_idx]
-    x_valid = data_x.iloc[valid_idx]
-    y_valid = data_y[valid_idx]
-    return x_train, y_train, x_valid, y_valid
-
-
-def evaluate(data_x, data_y, model, random_state=42, n_splits=5, test_x=None):
-    skf = StratifiedKFold(
-        n_splits=n_splits, random_state=random_state, shuffle=True
-    )
-    test_y = np.zeros(len(data_x)) if (
-        test_x is None) else np.zeros((len(test_x), n_splits))
-    for i, (train_index, valid_index) in enumerate(skf.split(data_x, data_y.astype(str))):
-        train_x, train_y, valid_x, valid_y = train_valid_split(
-            data_x, data_y, train_index, valid_index)
-        model.fit(train_x, train_y)
-        if test_x is None:
-            test_y[valid_index] = model.predict(valid_x)
-        else:
-            test_y[:, i] = model.predict(test_x)
-    return test_y if (test_x is None) else np.mean(test_y, axis=1)
 
 
 def q1(x):
@@ -358,17 +347,499 @@ test_feats = test_feats.merge(product_to_keys(
 test_ids = test_feats['id'].values
 testin_x = test_feats.drop(['id'], axis=1)
 
-print('< Learning and Evaluation >')
-param = {
-    'n_estimators': 10000,
-    'learning_rate': 0.0008,
-    'metric': 'rmse',
-    'random_state': 42,
-    'force_col_wise': True,
-    'verbosity': 0
-}
-solution = LGBMRegressor(**param)
-y_pred = evaluate(x.copy(), y.copy(), solution, test_x=testin_x.copy())
 
-sub = pd.DataFrame({'id': test_ids, 'score': y_pred})
-sub.to_csv('submission.csv', index=False)
+def train_valid_split(data_x, data_y, train_idx, valid_idx):
+    x_train = data_x.iloc[train_idx]
+    y_train = data_y[train_idx]
+    x_valid = data_x.iloc[valid_idx]
+    y_valid = data_y[valid_idx]
+    return x_train, y_train, x_valid, y_valid
+
+
+def evaluate(data_x, data_y, model, random_state=42, n_splits=5, test_x=None):
+    skf = model_selection.StratifiedKFold(
+        n_splits=n_splits, random_state=random_state, shuffle=True
+    )
+    test_y = np.zeros(len(data_x)) if (
+        test_x is None) else np.zeros((len(test_x), n_splits))
+    for i, (train_index, valid_index) in enumerate(skf.split(data_x, data_y.astype(str))):
+        train_x, train_y, valid_x, valid_y = train_valid_split(
+            data_x, data_y, train_index, valid_index)
+        model.fit(train_x, train_y)
+        if test_x is None:
+            test_y[valid_index] = model.predict(valid_x)
+        else:
+            test_y[:, i] = model.predict(test_x)
+    return test_y if (test_x is None) else np.mean(test_y, axis=1)
+
+
+target_col = ['score']
+drop_cols = ['id']
+train_cols = [
+    col for col in train_feats.columns if col not in target_col + drop_cols
+]
+
+print('< Learning and Evaluation >')
+
+
+def train_lgbm_model(train_feats, test_feats):
+    TEST_PREDS = np.zeros((len(test_feats), 1))
+
+    os.makedirs('../baseline_lgb_models', exist_ok=True)
+
+    EPOCHS = 5
+    SPLIT = 10
+
+    test_prediction_list = []
+    model_dict = {}
+    scores = []
+    preds = np.zeros((len(train_feats), 1))
+
+    best_params = {
+        'reg_alpha': 0.6016917340618352,
+        'reg_lambda': 3.8071290717767194,
+        'colsample_bytree': 0.45216556596658897,
+        'subsample': 0.4832292138435902,
+        'learning_rate': 0.001,
+        'num_leaves': 11,
+        'max_depth': 27,
+        'min_child_samples': 17,
+        'n_jobs': 4
+    }
+
+    for i in range(EPOCHS):
+        kf = model_selection.KFold(
+            n_splits=SPLIT, random_state=42 + i * 10, shuffle=True)
+        valid_preds = np.zeros(train_feats.shape[0])
+        X_test = test_feats[train_cols]
+
+        for fold, (train_idx, valid_idx) in enumerate(kf.split(train_feats)):
+            print(f'Epoch: {i + 1} Fold: {fold + 1}')
+            X_train, y_train = train_feats.iloc[train_idx][train_cols], train_feats.iloc[train_idx][target_col]
+            X_valid, y_valid = train_feats.iloc[valid_idx][train_cols], train_feats.iloc[valid_idx][target_col]
+            params = {
+                "objective": "regression",
+                "metric": "rmse",
+                "random_state": 42,
+                "n_estimators": 11_861,
+                "verbosity": 1,
+                **best_params
+            }
+            model = lgb.LGBMRegressor(**params)
+            early_stopping_callback = lgb.early_stopping(
+                100, first_metric_only=True, verbose=True)
+
+            model.fit(
+                X_train, y_train,
+                eval_set=[(X_valid, y_valid)],
+                callbacks=[early_stopping_callback]
+            )
+
+            valid_predict = model.predict(X_valid)
+            valid_preds[valid_idx] = valid_predict
+            preds[valid_idx, 0] += valid_predict / EPOCHS
+
+            test_predict = model.predict(X_test)
+            TEST_PREDS[:, 0] += test_predict / EPOCHS / SPLIT
+            test_prediction_list.append(test_predict)
+
+            score = metrics.mean_squared_error(
+                y_valid, valid_predict, squared=False)
+            model_dict[f'Epoch{i + 1}-Fold{fold + 1}'] = model
+            model.booster_.save_model(
+                f'../baseline_lgb_models/lgbm_model_epoch{i + 1}_fold{fold + 1}.txt')
+
+        final_score = metrics.mean_squared_error(
+            train_feats[target_col], valid_preds, squared=False)
+        scores.append(final_score)
+
+    print("Avg Loss:", np.mean(scores))
+
+    print('metric LGBM = {:.5f}'.format(metrics.mean_squared_error(
+        train_feats[target_col], preds[:, 0], squared=False)))
+
+    return TEST_PREDS
+
+
+def train_xgb_model(train_feats, test_feats):
+    TEST_PREDS = np.zeros((len(test_feats), 1))
+
+    os.makedirs('../baseline_xgb_models', exist_ok=True)
+
+    EPOCHS = 5
+    SPLIT = 10
+
+    test_prediction_list = []
+    model_dict = {}
+    scores = []
+    preds = np.zeros((len(train_feats), 1))
+
+    best_params = {
+        'reg_alpha': 0.6016917340618352,
+        'reg_lambda': 3.8071290717767194,
+        'colsample_bytree': 0.45216556596658897,
+        'subsample': 0.4832292138435902,
+        'learning_rate': 0.002,
+        'max_depth': 27,
+        'min_child_weight': 1.0,
+        'n_jobs': 4
+    }
+
+    for i in range(EPOCHS):
+        kf = model_selection.KFold(
+            n_splits=SPLIT, random_state=42 + i * 10, shuffle=True)
+        valid_preds = np.zeros(train_feats.shape[0])
+        X_test = test_feats[train_cols]
+
+        for fold, (train_idx, valid_idx) in enumerate(kf.split(train_feats)):
+            print(f'Epoch: {i + 1} Fold: {fold + 1}')
+            X_train, y_train = train_feats.iloc[train_idx][train_cols], train_feats.iloc[train_idx][target_col]
+            X_valid, y_valid = train_feats.iloc[valid_idx][train_cols], train_feats.iloc[valid_idx][target_col]
+            params = {
+                "objective": "reg:squarederror",
+                "eval_metric": "rmse",
+                "random_state": 42,
+                "n_estimators": 11_861,
+                "verbosity": 0,
+                **best_params
+            }
+            model = xgb.XGBRegressor(**params)
+
+            model.fit(
+                X_train, y_train,
+                eval_set=[(X_valid, y_valid)],
+                early_stopping_rounds=100,
+                verbose=True
+            )
+
+            valid_predict = model.predict(X_valid)
+            valid_preds[valid_idx] = valid_predict
+            preds[valid_idx, 0] += valid_predict / EPOCHS
+
+            test_predict = model.predict(X_test)
+            TEST_PREDS[:, 0] += test_predict / EPOCHS / SPLIT
+            test_prediction_list.append(test_predict)
+
+            score = metrics.mean_squared_error(
+                y_valid, valid_predict, squared=False)
+            model_dict[f'Epoch{i + 1}-Fold{fold + 1}'] = model
+            model.save_model(
+                f'../baseline_xgb_models/xgb_model_epoch{i + 1}_fold{fold + 1}.json')
+            # model.load_model(f'../baseline_xgb_models/xgb_model_epoch{i + 1}_fold{fold + 1}.json')
+
+        final_score = metrics.mean_squared_error(
+            train_feats[target_col], valid_preds, squared=False)
+        scores.append(final_score)
+
+    print("Avg Loss:", np.mean(scores))
+
+    print('metric XGB = {:.5f}'.format(metrics.mean_squared_error(
+        train_feats[target_col], preds[:, 0], squared=False)))
+
+    return TEST_PREDS
+
+
+def train_cb_model(train_feats, test_feats):
+    TEST_PREDS = np.zeros((len(test_feats), 1))
+
+    os.makedirs('../baseline_cb_models', exist_ok=True)
+
+    EPOCHS = 5
+    SPLIT = 10
+
+    test_prediction_list = []
+    model_dict = {}
+    scores = []
+    preds = np.zeros((len(train_feats), 1))
+
+    best_params = {
+        'l2_leaf_reg': 3.8071290717767194,
+        'colsample_bylevel': 0.45216556596658897,
+        'subsample': 0.4832292138435902,
+        'learning_rate': 0.002,
+        'depth': 6,
+        'thread_count': 4,
+        'min_child_samples': 7
+    }
+
+    for i in range(EPOCHS):
+        kf = model_selection.KFold(
+            n_splits=SPLIT, random_state=42 + i * 10, shuffle=True)
+        valid_preds = np.zeros(train_feats.shape[0])
+        X_test = test_feats[train_cols]
+
+        for fold, (train_idx, valid_idx) in enumerate(kf.split(train_feats)):
+            print(f'Epoch: {i + 1} Fold: {fold + 1}')
+            X_train, y_train = train_feats.iloc[train_idx][train_cols], train_feats.iloc[train_idx][target_col]
+            X_valid, y_valid = train_feats.iloc[valid_idx][train_cols], train_feats.iloc[valid_idx][target_col]
+
+            model = cb.CatBoostRegressor(
+                iterations=11_861,
+                loss_function='RMSE',
+                random_seed=2023,
+                verbose=True,
+                **best_params
+            )
+
+            model.fit(
+                X_train, y_train,
+                eval_set=[(X_valid, y_valid)],
+                early_stopping_rounds=100,
+                verbose=True
+            )
+
+            valid_predict = model.predict(X_valid)
+            valid_preds[valid_idx] = valid_predict
+            preds[valid_idx, 0] += valid_predict / EPOCHS
+
+            test_predict = model.predict(X_test)
+            TEST_PREDS[:, 0] += test_predict / EPOCHS / SPLIT
+            test_prediction_list.append(test_predict)
+
+            score = metrics.mean_squared_error(
+                y_valid, valid_predict, squared=False)
+            model_dict[f'Epoch{i + 1}-Fold{fold + 1}'] = model
+            model.save_model(
+                f'../baseline_cb_models/cb_model_epoch{i + 1}_fold{fold + 1}.cbm')
+            # model.load_model(f'../baseline_cb_models/cb_model_epoch{i + 1}_fold{fold + 1}.cbm')
+
+        final_score = metrics.mean_squared_error(
+            train_feats[target_col], valid_preds, squared=False)
+        scores.append(final_score)
+
+    print("Avg Loss:", np.mean(scores))
+
+    print('metric CB = {:.5f}'.format(metrics.mean_squared_error(
+        train_feats[target_col], preds[:, 0], squared=False)))
+
+    return TEST_PREDS
+
+
+def train_lgbm_optuna(train_feats, test_feats):
+    os.makedirs('../baseline_lgb_models_optuna', exist_ok=True)
+
+    def objective(trial):
+        EPOCHS = 1
+        SPLIT = 10
+
+        model_dict = {}
+        scores = []
+        preds = np.zeros((len(train_feats), 1))
+
+        best_params = {
+            'reg_alpha': trial.suggest_float("reg_alpha", 0.0, 1.0),
+            'reg_lambda': trial.suggest_float("reg_lambda", 0.0, 5.0),
+            'colsample_bytree': trial.suggest_float("colsample_bytree", 0.4, 1.0),
+            'subsample': trial.suggest_float("subsample", 0.4, 1.0),
+            'learning_rate': 0.002,
+            'num_leaves': trial.suggest_int("num_leaves", 5, 50),
+            'max_depth': trial.suggest_int("max_depth", 5, 30),
+            'min_child_samples': trial.suggest_int("min_child_samples", 2, 30),
+            'n_jobs': 4,
+            "n_estimators": trial.suggest_int("n_estimators", 1000, 20000)
+        }
+
+        for i in range(EPOCHS):
+            kf = model_selection.KFold(
+                n_splits=SPLIT, random_state=42 + i * 10, shuffle=True)
+            valid_preds = np.zeros(train_feats.shape[0])
+
+            for fold, (train_idx, valid_idx) in enumerate(kf.split(train_feats)):
+                print(f'Epoch: {i + 1} Fold: {fold + 1}')
+                X_train, y_train = train_feats.iloc[train_idx][train_cols], train_feats.iloc[train_idx][target_col]
+                X_valid, y_valid = train_feats.iloc[valid_idx][train_cols], train_feats.iloc[valid_idx][target_col]
+                params = {
+                    "objective": "regression",
+                    "metric": "rmse",
+                    "random_state": 42,
+                    "verbosity": -1,
+                    **best_params
+                }
+                model = lgb.LGBMRegressor(**params)
+                early_stopping_callback = lgb.early_stopping(
+                    100, first_metric_only=True, verbose=True)
+
+                model.fit(
+                    X_train, y_train,
+                    eval_set=[(X_valid, y_valid)],
+                    callbacks=[early_stopping_callback]
+                )
+
+                valid_predict = model.predict(X_valid)
+                valid_preds[valid_idx] = valid_predict
+                preds[valid_idx, 0] += valid_predict / EPOCHS
+
+                score = metrics.mean_squared_error(
+                    y_valid, valid_predict, squared=False)
+                model_dict[f'Epoch{i + 1}-Fold{fold + 1}'] = model
+                model.booster_.save_model(
+                    f'../baseline_lgb_models_optuna/lgbm_model_epoch{i + 1}_fold{fold + 1}.txt')
+
+            final_score = metrics.mean_squared_error(
+                train_feats[target_col], valid_preds, squared=False)
+            scores.append(final_score)
+
+        print("Avg Loss:", np.mean(scores))
+        return np.mean(scores)
+
+    study = optuna.create_study(direction="minimize")
+    study.optimize(objective, n_trials=20)
+
+    print("LightGBM Best trial:")
+    trial = study.best_trial
+    print(f"Value: {trial.value}")
+    print("Params: ")
+    for key, value in trial.params.items():
+        print(f"{key}: {value}")
+
+
+def train_xgb_optuna(train_feats):
+    os.makedirs('../baseline_xgb_models_optuna', exist_ok=True)
+
+    def objective(trial):
+        EPOCHS = 1
+        SPLIT = 10
+
+        model_dict = {}
+        scores = []
+        preds = np.zeros((len(train_feats), 1))
+
+        best_params = {
+            'reg_alpha': trial.suggest_float("reg_alpha", 0.0, 1.0),
+            'reg_lambda': trial.suggest_float("reg_lambda", 0.0, 5.0),
+            'colsample_bytree': trial.suggest_float("colsample_bytree", 0.4, 1.0),
+            'subsample': trial.suggest_float("subsample", 0.4, 1.0),
+            'learning_rate': 0.001,
+            'max_depth': trial.suggest_int("max_depth", 5, 30),
+            'min_child_weight': trial.suggest_float("min_child_weight", 1.0, 5.0),
+            'gamma': trial.suggest_float("gamma", 0.0, 10.0),
+            'max_delta_step': trial.suggest_int("max_delta_step", 1, 5),
+            'n_jobs': 4,
+            "n_estimators": trial.suggest_int("n_estimators", 1000, 20000)
+        }
+
+        for i in range(EPOCHS):
+            kf = model_selection.KFold(
+                n_splits=SPLIT, random_state=42 + i * 10, shuffle=True)
+            valid_preds = np.zeros(train_feats.shape[0])
+
+            for fold, (train_idx, valid_idx) in enumerate(kf.split(train_feats)):
+                print(f'Epoch: {i + 1} Fold: {fold + 1}')
+                X_train, y_train = train_feats.iloc[train_idx][train_cols], train_feats.iloc[train_idx][target_col]
+                X_valid, y_valid = train_feats.iloc[valid_idx][train_cols], train_feats.iloc[valid_idx][target_col]
+                params = {
+                    "objective": "reg:squarederror",
+                    "eval_metric": "rmse",
+                    "random_state": 42,
+                    "verbosity": 0,
+                    **best_params
+                }
+                model = xgb.XGBRegressor(**params)
+
+                model.fit(
+                    X_train, y_train,
+                    eval_set=[(X_valid, y_valid)],
+                    early_stopping_rounds=100,
+                    verbose=True
+                )
+
+                valid_predict = model.predict(X_valid)
+                valid_preds[valid_idx] = valid_predict
+                preds[valid_idx, 0] += valid_predict / EPOCHS
+
+                score = metrics.mean_squared_error(
+                    y_valid, valid_predict, squared=False)
+                model_dict[f'Epoch{i + 1}-Fold{fold + 1}'] = model
+                model.save_model(
+                    f'../baseline_xgb_models_optuna/xgb_model_epoch{i + 1}_fold{fold + 1}.json')
+
+            final_score = metrics.mean_squared_error(
+                train_feats[target_col], valid_preds, squared=False)
+            scores.append(final_score)
+
+        print("Avg Loss:", np.mean(scores))
+        return np.mean(scores)
+
+    study = optuna.create_study(direction="minimize")
+    study.optimize(objective, n_trials=20)
+
+    print("XGBoost Best trial:")
+    trial = study.best_trial
+    print(f"Value: {trial.value}")
+    print("Params: ")
+    for key, value in trial.params.items():
+        print(f"{key}: {value}")
+
+
+def train_cb_optuna(train_feats):
+    os.makedirs('../baseline_cb_models_optuna', exist_ok=True)
+
+    def objective(trial):
+        EPOCHS = 1
+        SPLIT = 10
+
+        model_dict = {}
+        scores = []
+        preds = np.zeros((len(train_feats), 1))
+
+        best_params = {
+            'l2_leaf_reg': trial.suggest_float('l2_leaf_reg', 1e-3, 10.0),
+            'colsample_bylevel': trial.suggest_float('colsample_bylevel', 0.1, 1.0),
+            'subsample': trial.suggest_float('subsample', 0.1, 1.0),
+            'learning_rate': trial.suggest_float('learning_rate', 1e-5, 1e-1, log=True),
+            'depth': trial.suggest_int('depth', 1, 6),
+            'iterations': trial.suggest_int('iterations', 1000, 15000),
+            'min_child_samples': trial.suggest_int('min_child_samples', 1, 20),
+            'thread_count': 4
+        }
+
+        for i in range(EPOCHS):
+            kf = model_selection.KFold(
+                n_splits=SPLIT, random_state=42 + i * 10, shuffle=True)
+            valid_preds = np.zeros(train_feats.shape[0])
+
+            for fold, (train_idx, valid_idx) in enumerate(kf.split(train_feats)):
+                print(f'Epoch: {i + 1} Fold: {fold + 1}')
+                X_train, y_train = train_feats.iloc[train_idx][train_cols], train_feats.iloc[train_idx][target_col]
+                X_valid, y_valid = train_feats.iloc[valid_idx][train_cols], train_feats.iloc[valid_idx][target_col]
+
+                model = cb.CatBoostRegressor(
+                    loss_function='RMSE',
+                    random_seed=2023,
+                    verbose=True,
+                    **best_params
+                )
+
+                model.fit(
+                    X_train, y_train,
+                    eval_set=[(X_valid, y_valid)],
+                    early_stopping_rounds=100,
+                    verbose=True
+                )
+
+                valid_predict = model.predict(X_valid)
+                valid_preds[valid_idx] = valid_predict
+                preds[valid_idx, 0] += valid_predict / EPOCHS
+
+                score = metrics.mean_squared_error(
+                    y_valid, valid_predict, squared=False)
+                model_dict[f'Epoch{i + 1}-Fold{fold + 1}'] = model
+                model.save_model(
+                    f'../baseline_cb_models_optuna/cb_model_epoch{i + 1}_fold{fold + 1}.cbm')
+
+            final_score = metrics.mean_squared_error(
+                train_feats[target_col], valid_preds, squared=False)
+            scores.append(final_score)
+
+        print("Avg Loss:", np.mean(scores))
+        return np.mean(scores)
+
+    study = optuna.create_study(direction="minimize")
+    study.optimize(objective, n_trials=30)
+
+    print("CatBoost Best trial:")
+    trial = study.best_trial
+    print(f"Value: {trial.value}")
+    print("Params: ")
+    for key, value in trial.params.items():
+        print(f"{key}: {value}")
