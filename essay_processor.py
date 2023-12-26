@@ -37,6 +37,14 @@ class EssayProcessor:
                 q1, q3, kurtosis_func
             ]
 
+        self.SENT_AGGREGATIONS = [
+            'count', 'mean', 'std', q1, 'median', q3
+        ]
+
+        self.PARA_AGGREGATIONS = [
+            'count', 'mean', 'std', q1, 'median', q3, 'min', 'max'
+        ]
+
     def split_essays_into_sentences(self, df):
         essay_df = df
         essay_df['id'] = essay_df.index
@@ -53,7 +61,7 @@ class EssayProcessor:
 
     def compute_sentence_aggregations(self, df):
         sent_agg_df = pd.concat([
-            df[['id', 'sent_len']].groupby(['id']).agg(self.SENT_AGGREGATIONS),
+            # df[['id', 'sent_len']].groupby(['id']).agg(self.SENT_AGGREGATIONS),
             df[['id', 'sent_word_count']].groupby(
                 ['id']).agg(self.SENT_AGGREGATIONS)
         ], axis=1)
@@ -80,8 +88,8 @@ class EssayProcessor:
 
     def compute_paragraph_aggregations(self, df):
         paragraph_agg_df = pd.concat([
-            df[['id', 'paragraph_len']].groupby(
-                ['id']).agg(self.PARA_AGGREGATIONS),
+            # df[['id', 'paragraph_len']].groupby(
+            #     ['id']).agg(self.PARA_AGGREGATIONS),
             df[['id', 'paragraph_word_count']].groupby(
                 ['id']).agg(self.PARA_AGGREGATIONS)
         ], axis=1)

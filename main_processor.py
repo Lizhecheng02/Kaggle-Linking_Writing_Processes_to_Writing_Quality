@@ -32,6 +32,8 @@ class Preprocessor:
         self.events = ['q', 'Space', 'Backspace', 'Shift', 'ArrowRight', 'Leftclick', 'ArrowLeft',
                        'ArrowDown', 'ArrowUp', 'Enter', 'CapsLock', 'Delete', 'Unidentified']
 
+        self.events2 = ['q', 'Space', 'Backspace']
+
         self.text_changes = ['q', ' ', 'NoChange', '.', ',', '\n', "'",
                              '"', '-', '?', ';', '=', '/', '\\', ':']
 
@@ -40,7 +42,7 @@ class Preprocessor:
                              '|', '!', '\\']
 
         # self.gaps = [1]
-        self.gaps = [1, 2, 3, 4, 5, 10, 20, 50, 100]
+        self.gaps = []
 
         self.idf = defaultdict(float)
 
@@ -67,7 +69,7 @@ class Preprocessor:
         ret.columns = cols
 
         cnts = ret.sum(1)
-        epsilon = 1e-10
+        epsilon = 1e-15
 
         for col in cols:
             if col in self.idf.keys():
@@ -119,7 +121,7 @@ class Preprocessor:
         ret.columns = cols
 
         cnts = ret.sum(1)
-        epsilon = 1e-10
+        epsilon = 1e-15
 
         for col in cols:
             if col in self.idf.keys():
@@ -155,7 +157,7 @@ class Preprocessor:
         ret.columns = cols
 
         cnts = ret.sum(1)
-        epsilon = 1e-10
+        epsilon = 1e-15
 
         for col in cols:
             if col in self.idf.keys():
@@ -217,25 +219,26 @@ class Preprocessor:
     def action_time_events_activities_all(self, df):
         def action_time_events_activities(group):
             features = {}
-            for event in self.events:
-                event_group = group[group['down_event'] == event]
-                features[f'down_{event}_id_mean'] = event_group['action_time'].mean(
-                )
-                features[f'down_{event}_id_std'] = event_group['action_time'].std()
-                features[f'down_{event}_id_min'] = event_group['action_time'].min()
-                features[f'down_{event}_id_max'] = event_group['action_time'].max()
-                features[f'down_{event}_id_median'] = event_group['action_time'].median(
-                )
-                features[f'down_{event}_id_skew'] = event_group['action_time'].skew(
-                )
-                features[f'down_{event}_id_kurt'] = event_group['action_time'].kurt(
-                )
-                features[f'down_{event}_id_25%'] = event_group['action_time'].quantile(
-                    0.25)
-                features[f'down_{event}_id_75%'] = event_group['action_time'].quantile(
-                    0.75)
+            # for event in self.events2:
+            #     event_group = group[group['down_event'] == event]
+            #     features[f'down_{event}_id_mean'] = event_group['action_time'].mean(
+            #     )
+            #     features[f'down_{event}_id_std'] = event_group['action_time'].std()
+            #     features[f'down_{event}_id_min'] = event_group['action_time'].min()
+            #     features[f'down_{event}_id_max'] = event_group['action_time'].max()
+            #     features[f'down_{event}_id_median'] = event_group['action_time'].median(
+            #     )
+            #     features[f'down_{event}_id_skew'] = event_group['action_time'].skew(
+            #     )
+            #     features[f'down_{event}_id_kurt'] = event_group['action_time'].kurt(
+            #     )
+            #     features[f'down_{event}_id_25%'] = event_group['action_time'].quantile(
+            #         0.25)
+            #     features[f'down_{event}_id_75%'] = event_group['action_time'].quantile(
+            #         0.75)
+            #     features[f'down_{event}_id_sum'] = event_group['action_time'].sum()
 
-            for event in self.events:
+            for event in self.events2:
                 event_group = group[group['up_event'] == event]
                 features[f'up_{event}_id_mean'] = event_group['action_time'].mean()
                 features[f'up_{event}_id_std'] = event_group['action_time'].std()
@@ -249,6 +252,7 @@ class Preprocessor:
                     0.25)
                 features[f'up_{event}_id_75%'] = event_group['action_time'].quantile(
                     0.75)
+                features[f'up_{event}_id_sum'] = event_group['action_time'].sum()
 
             for activity in self.activities:
                 activity_group = group[group['activity'] == activity]
@@ -263,6 +267,7 @@ class Preprocessor:
                     0.25)
                 features[f'{activity}_id_75%'] = activity_group['action_time'].quantile(
                     0.75)
+                features[f'{activity}_id_sum'] = activity_group['action_time'].sum()
 
             return pd.Series(features)
 
@@ -275,7 +280,7 @@ class Preprocessor:
 
         def idle_time_events_activities(group):
             features = {}
-            for event in self.events:
+            for event in self.events2:
                 event_group = group[group['down_event'] == event]
                 features[f'idle_down_{event}_id_mean'] = event_group['idle_time'].mean(
                 )
@@ -296,7 +301,7 @@ class Preprocessor:
                 features[f'idle_down_{event}_id_75%'] = event_group['idle_time'].quantile(
                     0.75)
 
-            for event in self.events:
+            for event in self.events2:
                 event_group = group[group['up_event'] == event]
                 features[f'idle_up_{event}_id_mean'] = event_group['idle_time'].mean(
                 )
@@ -383,14 +388,14 @@ class Preprocessor:
                 ('up_time', ['max']),
                 ('action_time', ['max', 'min', 'mean', 'std',
                  'median', 'sem', 'sum', 'skew', kurtosis_func, q1, q3]),
-                ('activity', ['nunique']),
-                ('down_event', ['nunique']),
-                ('up_event', ['nunique']),
-                ('text_change', ['nunique']),
-                ('cursor_position', ['nunique', 'max',
-                 'median', 'sem', 'mean', q1, q3]),
-                ('word_count', ['nunique', 'max',
-                 'median', 'sem', 'mean', q1, q3])
+                # ('activity', ['nunique']),
+                # ('down_event', ['nunique']),
+                # ('up_event', ['nunique']),
+                # ('text_change', ['nunique']),
+                ('cursor_position', ['nunique', 'max', 'last',
+                 'median', 'sem', q1, q3]),
+                ('word_count', ['nunique', 'max', 'last',
+                 'median', 'sem', q1, q3])
             ]
 
             for gap in self.gaps:
@@ -417,15 +422,16 @@ class Preprocessor:
             feats_stat = [
                 ('event_id', ['max']),
                 ('up_time', ['max']),
-                ('action_time', ['max', 'min', 'mean',
-                 'std', 'median', 'sem', 'sum', 'skew', kurtosis_func, q1, q3]),
-                ('activity', ['nunique']),
-                ('down_event', ['nunique']),
-                ('up_event', ['nunique']),
-                ('text_change', ['nunique']),
-                ('cursor_position', ['nunique',
-                 'max', 'median', 'sem', 'mean', q1, q3]),
-                ('word_count', ['nunique', 'max', 'median', 'sem', 'mean', q1, q3])
+                ('action_time', ['max', 'min', 'mean', 'std',
+                 'median', 'sem', 'sum', 'skew', kurtosis_func, q1, q3]),
+                # ('activity', ['nunique']),
+                # ('down_event', ['nunique']),
+                # ('up_event', ['nunique']),
+                # ('text_change', ['nunique']),
+                ('cursor_position', ['nunique', 'max', 'last',
+                 'median', 'sem', q1, q3]),
+                ('word_count', ['nunique', 'max', 'last',
+                 'median', 'sem', q1, q3])
             ]
 
             for gap in self.gaps:
@@ -480,18 +486,18 @@ class Preprocessor:
         tmp_df = self.match_punctuations(df)
         feats = pd.concat([feats, tmp_df], axis=1)
 
-        print("Engineering input words data")
-        tmp_df = self.get_input_words(df)
-        feats = pd.merge(feats, tmp_df, on='id', how='left')
-
-        print("Engineering change words data")
-        tmp_df = self.get_change_words(df)
-        feats = pd.merge(feats, tmp_df, on='id', how='left')
-
-        # print("Engineering action time features")
-        # tmp_df = self.action_time_events_activities_all(df)
-        # tmp_df = tmp_df.reset_index()
+        # print("Engineering input words data")
+        # tmp_df = self.get_input_words(df)
         # feats = pd.merge(feats, tmp_df, on='id', how='left')
+
+        # print("Engineering change words data")
+        # tmp_df = self.get_change_words(df)
+        # feats = pd.merge(feats, tmp_df, on='id', how='left')
+
+        print("Engineering action time features")
+        tmp_df = self.action_time_events_activities_all(df)
+        tmp_df = tmp_df.reset_index()
+        feats = pd.merge(feats, tmp_df, on='id', how='left')
 
         # print("Engineering idle time features")
         # tmp_df = self.idle_time_events_activities_all(df)
@@ -501,13 +507,17 @@ class Preprocessor:
         # feats = feats.fillna(0.0)
 
         print("Engineering ratios data")
-        feats['word_time_ratio'] = feats['word_count_max'] / \
+        feats['word_time_ratio'] = feats['word_count_last'] / \
             feats['up_time_max']
-        feats['word_event_ratio'] = feats['word_count_max'] / \
+        feats['word_event_ratio'] = feats['word_count_last'] / \
+            feats['event_id_max']
+        feats['position_time_ratio'] = feats['cursor_position_last'] / \
+            feats['up_time_max']
+        feats['position_event_ratio'] = feats['cursor_position_last'] / \
             feats['event_id_max']
         feats['event_time_ratio'] = feats['event_id_max'] / feats['up_time_max']
-        feats['idle_time_ratio'] = feats['action_time_gap1_sum'] / \
-            feats['up_time_max']
+        # feats['idle_time_ratio'] = feats['action_time_gap1_sum'] / \
+        #     feats['up_time_max']
         feats.drop(columns=['up_time_max', 'event_id_max'], inplace=True)
 
         return feats

@@ -1,13 +1,21 @@
 import pandas as pd
 
 
+def q1(x):
+    return x.quantile(0.25)
+
+
+def q3(x):
+    return x.quantile(0.75)
+
+
 class TimeProcessor:
     def __init__(self):
         pass
 
     def train_processor1(self, train_logs):
         train_agg_fe_df1 = train_logs.groupby("id")[['action_time']].agg(
-            ['mean', 'std', 'min', 'max', 'median']
+            ['mean', 'std', 'min', 'max', 'median', q1, q3]
         )
         train_agg_fe_df1.columns = [
             '_'.join(x) for x in train_agg_fe_df1.columns]
@@ -16,8 +24,8 @@ class TimeProcessor:
         return train_agg_fe_df1
 
     def train_processor2(self, train_logs):
-        train_agg_fe_df2 = train_logs.groupby("id")[['down_time', 'up_time', 'cursor_position', 'word_count']].agg([
-            'min', 'max', 'median'])
+        train_agg_fe_df2 = train_logs.groupby("id")[
+            ['down_time', 'up_time', 'cursor_position', 'word_count']].agg([q1, 'median', q3, 'max'])
         train_agg_fe_df2.columns = [
             '_'.join(x) for x in train_agg_fe_df2.columns]
         train_agg_fe_df2 = train_agg_fe_df2.add_prefix("tmp_")
@@ -26,7 +34,7 @@ class TimeProcessor:
 
     def test_processor1(self, test_logs):
         test_agg_fe_df1 = test_logs.groupby("id")[['action_time']].agg(
-            ['mean', 'std', 'min', 'max', 'median']
+            ['mean', 'std', 'min', 'max', 'median', q1, q3]
         )
         test_agg_fe_df1.columns = ['_'.join(x)
                                    for x in test_agg_fe_df1.columns]
@@ -36,7 +44,7 @@ class TimeProcessor:
 
     def test_processor2(self, test_logs):
         test_agg_fe_df2 = test_logs.groupby("id")[['down_time', 'up_time', 'cursor_position', 'word_count']].agg(
-            ['min', 'max', 'median']
+            [q1, 'median', q3, 'max']
         )
         test_agg_fe_df2.columns = ['_'.join(x)
                                    for x in test_agg_fe_df2.columns]
@@ -74,7 +82,7 @@ class TimeProcessor:
                 'smallest_lantency': smallest_lantency,
                 'median_lantency': median_lantency,
                 'std_lantency': std_lantency,
-                'initial_pause': initial_pause,
+                # 'initial_pause': initial_pause,
                 'pause_zero_sec': pause_zero_sec,
                 'pauses_half_sec': pauses_half_sec,
                 'pauses_1_sec': pauses_1_sec,
