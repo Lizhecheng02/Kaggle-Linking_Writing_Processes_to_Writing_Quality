@@ -20,6 +20,7 @@ import regex as re
 import torch
 import optuna
 import pandas as pd
+import json
 warnings.filterwarnings('ignore')
 
 train_logs = pd.read_csv("../train_logs.csv")
@@ -109,7 +110,7 @@ def objective(trial):
         'reg_lambda': trial.suggest_float("reg_lambda", 0.0, 5.0), 
         'colsample_bytree': trial.suggest_float("colsample_bytree", 0.4, 1.0), 
         'subsample': trial.suggest_float("subsample", 0.4, 1.0), 
-        'learning_rate': 0.002,
+        'learning_rate': trial.suggest_float("learning_rate", 1e-4, 1.0),
         'num_leaves': trial.suggest_int("num_leaves", 5, 50), 
         'max_depth': trial.suggest_int("max_depth", 5, 30), 
         'min_child_samples': trial.suggest_int("min_child_samples", 2, 30),
@@ -165,3 +166,8 @@ print(f"Value: {trial.value}")
 print("Params: ")
 for key, value in trial.params.items():
     print(f"{key}: {value}")
+
+with open('../lgbm_best_params.json', 'w') as json_file:
+    json.dump(trial.params, json_file, indent=4)
+
+print("Save LightGBM best_params to json file")

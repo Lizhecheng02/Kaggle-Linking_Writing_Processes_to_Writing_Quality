@@ -21,6 +21,7 @@ import torch
 import optuna
 import pandas as pd
 import xgboost as xgb
+import json
 warnings.filterwarnings('ignore')
 
 train_logs = pd.read_csv("../train_logs.csv")
@@ -110,11 +111,11 @@ def objective(trial):
         'reg_lambda': trial.suggest_float("reg_lambda", 0.0, 5.0), 
         'colsample_bytree': trial.suggest_float("colsample_bytree", 0.4, 1.0), 
         'subsample': trial.suggest_float("subsample", 0.4, 1.0), 
-        'learning_rate': 0.001,
+        'learning_rate': trial.suggest_float("learning_rate", 1e-4, 1.0),
         'max_depth': trial.suggest_int("max_depth", 5, 30), 
         'min_child_weight': trial.suggest_float("min_child_weight", 1.0, 5.0),
         'gamma': trial.suggest_float("gamma", 0.0, 10.0),
-        'max_delta_step': trial.suggest_int("max_delta_step", 1, 5),
+        'max_delta_step': trial.suggest_int("max_delta_step", 1, 10),
         'n_jobs': 4,
         "n_estimators": trial.suggest_int("n_estimators", 1000, 20000)
     }
@@ -167,3 +168,8 @@ print(f"Value: {trial.value}")
 print("Params: ")
 for key, value in trial.params.items():
     print(f"{key}: {value}")
+
+with open('../xgb_best_params.json', 'w') as json_file:
+    json.dump(trial.params, json_file, indent=4)
+
+print("Save XGBoost best_params to json file")

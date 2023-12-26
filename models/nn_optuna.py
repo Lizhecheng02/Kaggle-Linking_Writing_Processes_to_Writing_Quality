@@ -20,6 +20,7 @@ import regex as re
 import torch
 import optuna
 import pandas as pd
+import json
 warnings.filterwarnings('ignore')
 
 train_logs = pd.read_csv("../train_logs.csv")
@@ -212,3 +213,8 @@ print(f"Value: {trial.value}")
 print("Params: ")
 for key, value in trial.params.items():
     print(f"{key}: {value}")
+
+with open('../nn_best_params.json', 'w') as json_file:
+    json.dump(trial.params, json_file, indent=4)
+
+print("Save NN best_params to json file")

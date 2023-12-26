@@ -22,6 +22,7 @@ import catboost as cb
 import optuna
 import pandas as pd
 import xgboost as xgb
+import json
 warnings.filterwarnings('ignore')
 
 train_logs = pd.read_csv("../train_logs.csv")
@@ -111,7 +112,7 @@ def objective(trial):
         'colsample_bylevel': trial.suggest_float('colsample_bylevel', 0.1, 1.0),
         'subsample': trial.suggest_float('subsample', 0.1, 1.0),
         'learning_rate': trial.suggest_float('learning_rate', 1e-5, 1e-1, log=True),
-        'depth': trial.suggest_int('depth', 1, 6),
+        'depth': trial.suggest_int('depth', 1, 10),
         'iterations': trial.suggest_int('iterations', 1000, 15000),
         'min_child_samples': trial.suggest_int('min_child_samples', 1, 20),
         'thread_count': 4
@@ -164,3 +165,8 @@ print(f"Value: {trial.value}")
 print("Params: ")
 for key, value in trial.params.items():
     print(f"{key}: {value}")
+
+with open('../cb_best_params.json', 'w') as json_file:
+    json.dump(trial.params, json_file, indent=4)
+
+print("Save catboost best_params to json file")
