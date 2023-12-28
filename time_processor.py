@@ -78,9 +78,9 @@ class TimeProcessor:
 
             data.append(pd.DataFrame({
                 'id': logs['id'].unique(),
-                'largest_lantency': largest_lantency,
-                'smallest_lantency': smallest_lantency,
-                'median_lantency': median_lantency,
+                # 'largest_lantency': largest_lantency,
+                # 'smallest_lantency': smallest_lantency,
+                # 'median_lantency': median_lantency,
                 'std_lantency': std_lantency,
                 # 'initial_pause': initial_pause,
                 'pause_zero_sec': pause_zero_sec,

@@ -41,8 +41,8 @@ class Preprocessor:
                              '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '`', '~',
                              '|', '!', '\\']
 
-        # self.gaps = [1]
-        self.gaps = []
+        self.gaps = [1, 5, 15, 30, 50, 100]
+        # self.gaps = []
 
         self.idf = defaultdict(float)
 
@@ -68,19 +68,23 @@ class Preprocessor:
         cols = [f'activity_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        cnts = ret.sum(1)
-        epsilon = 1e-15
+        # cnts = ret.sum(1)
+        # epsilon = 1e-15
 
+        # for col in cols:
+        #     if col in self.idf.keys():
+        #         idf = self.idf[col]
+        #     else:
+        #         idf = df.shape[0] / (ret[col].sum() + 1)
+        #         idf = np.log(idf)
+        #         self.idf[col] = idf
+
+        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+        #     ret[col] *= idf
+
+        cnts = ret.sum(axis=1)
         for col in cols:
-            if col in self.idf.keys():
-                idf = self.idf[col]
-            else:
-                idf = df.shape[0] / (ret[col].sum() + 1)
-                idf = np.log(idf)
-                self.idf[col] = idf
-
-            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-            ret[col] *= idf
+            ret[col] = ret[col] / cnts
 
         return ret
 
@@ -120,19 +124,23 @@ class Preprocessor:
         cols = [f'text_change_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        cnts = ret.sum(1)
-        epsilon = 1e-15
+        # cnts = ret.sum(1)
+        # epsilon = 1e-15
 
+        # for col in cols:
+        #     if col in self.idf.keys():
+        #         idf = self.idf[col]
+        #     else:
+        #         idf = df.shape[0] / (ret[col].sum() + 1)
+        #         idf = np.log(idf)
+        #         self.idf[col] = idf
+
+        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+        #     ret[col] *= idf
+
+        cnts = ret.sum(axis=1)
         for col in cols:
-            if col in self.idf.keys():
-                idf = self.idf[col]
-            else:
-                idf = df.shape[0] / (ret[col].sum() + 1)
-                idf = np.log(idf)
-                self.idf[col] = idf
-
-            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-            ret[col] *= idf
+            ret[col] = ret[col] / cnts
 
         return ret
 
@@ -156,19 +164,23 @@ class Preprocessor:
         cols = [f'{colname}_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        cnts = ret.sum(1)
-        epsilon = 1e-15
+        # cnts = ret.sum(1)
+        # epsilon = 1e-15
 
+        # for col in cols:
+        #     if col in self.idf.keys():
+        #         idf = self.idf[col]
+        #     else:
+        #         idf = df.shape[0] / (ret[col].sum() + 1)
+        #         idf = np.log(idf)
+        #         self.idf[col] = idf
+
+        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+        #     ret[col] *= idf
+
+        cnts = ret.sum(axis=1)
         for col in cols:
-            if col in self.idf.keys():
-                idf = self.idf[col]
-            else:
-                idf = df.shape[0] / (ret[col].sum() + 1)
-                idf = np.log(idf)
-                self.idf[col] = idf
-
-            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-            ret[col] *= idf
+            ret[col] = ret[col] / cnts
 
         return ret
 
@@ -241,13 +253,13 @@ class Preprocessor:
             for event in self.events2:
                 event_group = group[group['up_event'] == event]
                 features[f'up_{event}_id_mean'] = event_group['action_time'].mean()
-                features[f'up_{event}_id_std'] = event_group['action_time'].std()
-                features[f'up_{event}_id_min'] = event_group['action_time'].min()
-                features[f'up_{event}_id_max'] = event_group['action_time'].max()
+                # features[f'up_{event}_id_std'] = event_group['action_time'].std()
+                # features[f'up_{event}_id_min'] = event_group['action_time'].min()
+                # features[f'up_{event}_id_max'] = event_group['action_time'].max()
                 features[f'up_{event}_id_median'] = event_group['action_time'].median(
                 )
-                features[f'up_{event}_id_skew'] = event_group['action_time'].skew()
-                features[f'up_{event}_id_kurt'] = event_group['action_time'].kurt()
+                # features[f'up_{event}_id_skew'] = event_group['action_time'].skew()
+                # features[f'up_{event}_id_kurt'] = event_group['action_time'].kurt()
                 features[f'up_{event}_id_25%'] = event_group['action_time'].quantile(
                     0.25)
                 features[f'up_{event}_id_75%'] = event_group['action_time'].quantile(
@@ -257,12 +269,12 @@ class Preprocessor:
             for activity in self.activities:
                 activity_group = group[group['activity'] == activity]
                 features[f'{activity}_id_mean'] = activity_group['action_time'].mean()
-                features[f'{activity}_id_std'] = activity_group['action_time'].std()
-                features[f'{activity}_id_min'] = activity_group['action_time'].min()
-                features[f'{activity}_id_max'] = activity_group['action_time'].max()
+                # features[f'{activity}_id_std'] = activity_group['action_time'].std()
+                # features[f'{activity}_id_min'] = activity_group['action_time'].min()
+                # features[f'{activity}_id_max'] = activity_group['action_time'].max()
                 features[f'{activity}_id_median'] = activity_group['action_time'].median()
-                features[f'{activity}_id_skew'] = activity_group['action_time'].skew()
-                features[f'{activity}_id_kurt'] = activity_group['action_time'].kurt()
+                # features[f'{activity}_id_skew'] = activity_group['action_time'].skew()
+                # features[f'{activity}_id_kurt'] = activity_group['action_time'].kurt()
                 features[f'{activity}_id_25%'] = activity_group['action_time'].quantile(
                     0.25)
                 features[f'{activity}_id_75%'] = activity_group['action_time'].quantile(
@@ -364,8 +376,8 @@ class Preprocessor:
                 'id')['cursor_position'].shift(gap)
             df[f'cursor_position_change{gap}'] = df['cursor_position'] - \
                 df[f'cursor_position_shift{gap}']
-            df[f'cursor_position_abs_change{gap}'] = np.abs(
-                df[f'cursor_position_change{gap}'])
+            # df[f'cursor_position_abs_change{gap}'] = np.abs(
+            #     df[f'cursor_position_change{gap}'])
         df.drop(
             columns=[f'cursor_position_shift{gap}' for gap in self.gaps], inplace=True)
 
@@ -375,8 +387,8 @@ class Preprocessor:
                 'id')['word_count'].shift(gap)
             df[f'word_count_change{gap}'] = df['word_count'] - \
                 df[f'word_count_shift{gap}']
-            df[f'word_count_abs_change{gap}'] = np.abs(
-                df[f'word_count_change{gap}'])
+            # df[f'word_count_abs_change{gap}'] = np.abs(
+            #     df[f'word_count_change{gap}'])
         df.drop(
             columns=[f'word_count_shift{gap}' for gap in self.gaps], inplace=True)
 
@@ -386,8 +398,7 @@ class Preprocessor:
             feats_stat = [
                 ('event_id', ['max']),
                 ('up_time', ['max']),
-                ('action_time', ['max', 'min', 'mean', 'std',
-                 'median', 'sem', 'sum', 'skew', kurtosis_func, q1, q3]),
+                ('action_time', ['mean', 'median', 'sem', 'sum', 'skew']),
                 # ('activity', ['nunique']),
                 # ('down_event', ['nunique']),
                 # ('up_event', ['nunique']),
@@ -402,28 +413,27 @@ class Preprocessor:
                 if gap == 1:
                     feats_stat.extend([
                         (f'action_time_gap{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3]),
+                         'mean', 'std', 'median', 'skew']),
                         (f'cursor_position_change{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3]),
-                        (f'word_count_change{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3])
+                         'sum', 'max', 'min', 'mean', 'std', 'skew']),
+                        # (f'word_count_change{gap}', [
+                        #  'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3])
                     ])
                 else:
                     feats_stat.extend([
                         (f'action_time_gap{gap}', [
-                         'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3]),
+                         'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3]),
                         (f'cursor_position_change{gap}', [
-                         'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3]),
-                        (f'word_count_change{gap}', [
-                         'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3])
+                         'max', 'min', 'mean', 'std', 'skew', kurtosis_func, q1, q3]),
+                        # (f'word_count_change{gap}', [
+                        #  'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3])
                     ])
 
         if self.device == "cuda":
             feats_stat = [
                 ('event_id', ['max']),
                 ('up_time', ['max']),
-                ('action_time', ['max', 'min', 'mean', 'std',
-                 'median', 'sem', 'sum', 'skew', kurtosis_func, q1, q3]),
+                ('action_time', ['mean', 'median', 'sem', 'sum', 'skew']),
                 # ('activity', ['nunique']),
                 # ('down_event', ['nunique']),
                 # ('up_event', ['nunique']),
@@ -438,20 +448,20 @@ class Preprocessor:
                 if gap == 1:
                     feats_stat.extend([
                         (f'action_time_gap{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func]),
+                         'mean', 'std', 'median', 'skew']),
                         (f'cursor_position_change{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func]),
-                        (f'word_count_change{gap}', [
-                         'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func])
+                         'sum', 'max', 'min', 'mean', 'std', 'skew']),
+                    #     (f'word_count_change{gap}', [
+                    #      'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func])
                     ])
                 else:
                     feats_stat.extend([
                         (f'action_time_gap{gap}', [
-                         'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func]),
+                         'mean', 'std', 'median', 'skew']),
                         (f'cursor_position_change{gap}', [
-                         'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func]),
-                        (f'word_count_change{gap}', [
-                         'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func])
+                         'max', 'min', 'mean', 'std', 'skew']),
+                        # (f'word_count_change{gap}', [
+                        #  'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func])
                     ])
 
         pbar = tqdm(feats_stat)
@@ -516,8 +526,10 @@ class Preprocessor:
         feats['position_event_ratio'] = feats['cursor_position_last'] / \
             feats['event_id_max']
         feats['event_time_ratio'] = feats['event_id_max'] / feats['up_time_max']
-        # feats['idle_time_ratio'] = feats['action_time_gap1_sum'] / \
-        #     feats['up_time_max']
+        feats['idle_time_ratio'] = feats['action_time_gap1_sum'] / \
+            feats['up_time_max']
+        feats['word_per_action_time'] = feats['word_count_max'] / feats['action_time_sum']
+        feats['position_per_action_time'] = feats['cursor_position_last'] / feats['action_time_sum']
         feats.drop(columns=['up_time_max', 'event_id_max'], inplace=True)
 
         return feats
