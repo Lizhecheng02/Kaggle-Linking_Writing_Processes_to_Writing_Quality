@@ -413,7 +413,7 @@ class Preprocessor:
                 if gap == 1:
                     feats_stat.extend([
                         (f'action_time_gap{gap}', [
-                         'mean', 'std', 'median', 'skew']),
+                         'sum', 'mean', 'std', 'median', 'skew']),
                         (f'cursor_position_change{gap}', [
                          'sum', 'max', 'min', 'mean', 'std', 'skew']),
                         # (f'word_count_change{gap}', [
@@ -448,7 +448,7 @@ class Preprocessor:
                 if gap == 1:
                     feats_stat.extend([
                         (f'action_time_gap{gap}', [
-                         'mean', 'std', 'median', 'skew']),
+                         'sum', 'mean', 'std', 'median', 'skew']),
                         (f'cursor_position_change{gap}', [
                          'sum', 'max', 'min', 'mean', 'std', 'skew']),
                     #     (f'word_count_change{gap}', [
