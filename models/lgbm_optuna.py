@@ -53,14 +53,6 @@ test_feats = preprocessor.make_feats(test_logs)
 print("The shape of train_feats after mainprocessor: ", train_feats.shape)
 print("The shape of test_feats after mainprocessor: ",test_feats.shape)
 
-nan_cols = train_feats.columns[train_feats.isna().any()].tolist()
-print("nan_cols:", nan_cols)
-
-train_feats = train_feats.drop(columns=nan_cols)
-test_feats = test_feats.drop(columns=nan_cols)
-print(train_feats.shape)
-print(test_feats.shape)
-
 timeprocessor = TimeProcessor()
 # train_agg_fe_df1 = timeprocessor.train_processor1(train_logs)
 # train_agg_fe_df2 = timeprocessor.train_processor2(train_logs)
@@ -87,6 +79,14 @@ test_feats = test_feats.merge(test_sent_agg_df, on='id', how='left')
 test_feats = test_feats.merge(test_paragraph_agg_df, on='id', how='left')
 test_feats = test_feats.fillna(0.0)
 print("The final shape of test_feats:", test_feats.shape)
+
+nan_cols = train_feats.columns[train_feats.isna().any()].tolist()
+print("nan_cols:", nan_cols)
+
+train_feats = train_feats.drop(columns=nan_cols)
+test_feats = test_feats.drop(columns=nan_cols)
+print(train_feats.shape)
+print(test_feats.shape)
 
 target_col = ['score']
 drop_cols = ['id']
