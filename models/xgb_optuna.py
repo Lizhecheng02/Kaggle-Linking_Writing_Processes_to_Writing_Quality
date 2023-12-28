@@ -160,7 +160,7 @@ def objective(trial):
     return np.mean(scores)
 
 study = optuna.create_study(direction="minimize")
-study.optimize(objective, n_trials=20)
+study.optimize(objective, n_trials=200)
 
 print("Best trial:")
 trial = study.best_trial
