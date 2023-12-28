@@ -98,8 +98,8 @@ TEST_PREDS = np.zeros((len(test_feats), 1))
 os.makedirs('../xgb_models_optuna', exist_ok=True)
 
 def objective(trial):
-    EPOCHS = 1
-    SPLIT = 10
+    EPOCHS = 5
+    SPLIT = 5
 
     test_prediction_list = []
     model_dict = {}

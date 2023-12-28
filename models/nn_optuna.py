@@ -161,7 +161,7 @@ def objective(trial):
     model = My_model()
     
     EPOCHS = 5
-    SPLIT = 10
+    SPLIT = 5
 
     losses = []
 
