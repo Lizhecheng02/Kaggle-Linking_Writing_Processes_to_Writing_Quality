@@ -34,8 +34,10 @@ class Preprocessor:
 
         self.events2 = ['q', 'Space', 'Backspace']
 
-        self.text_changes = ['q', ' ', 'NoChange', '.', ',', '\n', "'",
-                             '"', '-', '?', ';', '=', '/', '\\', ':']
+        # self.text_changes = ['q', ' ', 'NoChange', '.', ',', '\n', "'",
+        #                      '"', '-', '?', ';', '=', '/', '\\', ':']
+        
+        self.text_changes = ['q', ' ', 'NoChange', ',']
 
         self.punctuations = ['"', '.', ',', "'", '-', ';', ':', '?', '!', '<', '>', '/',
                              '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '`', '~',
