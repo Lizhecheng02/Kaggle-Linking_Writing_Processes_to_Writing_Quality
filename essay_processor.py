@@ -61,7 +61,7 @@ class EssayProcessor:
 
     def compute_sentence_aggregations(self, df):
         sent_agg_df = pd.concat([
-            # df[['id', 'sent_len']].groupby(['id']).agg(self.SENT_AGGREGATIONS),
+            df[['id', 'sent_len']].groupby(['id']).agg(self.SENT_AGGREGATIONS),
             df[['id', 'sent_word_count']].groupby(
                 ['id']).agg(self.SENT_AGGREGATIONS)
         ], axis=1)
@@ -88,8 +88,8 @@ class EssayProcessor:
 
     def compute_paragraph_aggregations(self, df):
         paragraph_agg_df = pd.concat([
-            # df[['id', 'paragraph_len']].groupby(
-            #     ['id']).agg(self.PARA_AGGREGATIONS),
+            df[['id', 'paragraph_len']].groupby(
+                ['id']).agg(self.PARA_AGGREGATIONS),
             df[['id', 'paragraph_word_count']].groupby(
                 ['id']).agg(self.PARA_AGGREGATIONS)
         ], axis=1)

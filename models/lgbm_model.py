@@ -71,7 +71,6 @@ test_feats = test_feats.merge(test_pause_features, on='id', how='left')
 
 train_feats = train_feats.merge(train_sent_agg_df, on="id", how="left")
 train_feats = train_feats.merge(train_paragraph_agg_df, on="id", how="left")
-train_feats.to_csv("../features.csv", index=False)
 train_feats = train_feats.fillna(0.0)
 print("The final shape of train_feats:", train_feats.shape)
 
