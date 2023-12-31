@@ -97,7 +97,7 @@ TEST_PREDS = np.zeros((len(test_feats), 1))
 os.makedirs('../lgb_models_optuna', exist_ok=True)
 
 def objective(trial):
-    EPOCHS = 5
+    EPOCHS = 2
     SPLIT = 5
 
     test_prediction_list = []
