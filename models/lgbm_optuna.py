@@ -110,7 +110,7 @@ def objective(trial):
         'reg_lambda': trial.suggest_float("reg_lambda", 0.0, 5.0), 
         'colsample_bytree': trial.suggest_float("colsample_bytree", 0.4, 1.0), 
         'subsample': trial.suggest_float("subsample", 0.4, 1.0), 
-        'learning_rate': trial.suggest_float("learning_rate", 1e-4, 1.0),
+        'learning_rate': trial.suggest_float("learning_rate", 1e-4, 1e-2),
         'num_leaves': trial.suggest_int("num_leaves", 5, 50), 
         'max_depth': trial.suggest_int("max_depth", 5, 30), 
         'min_child_samples': trial.suggest_int("min_child_samples", 2, 30),

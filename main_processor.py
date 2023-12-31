@@ -34,10 +34,10 @@ class Preprocessor:
 
         self.events2 = ['q', 'Space', 'Backspace']
 
-        # self.text_changes = ['q', ' ', 'NoChange', '.', ',', '\n', "'",
-        #                      '"', '-', '?', ';', '=', '/', '\\', ':']
+        self.text_changes = ['q', ' ', 'NoChange', '.', ',', '\n', "'",
+                             '"', '-', '?', ';', '=', '/', '\\', ':']
         
-        self.text_changes = ['q', ' ', 'NoChange', ',']
+        # self.text_changes = ['q', ' ', 'NoChange', ',']
 
         self.punctuations = ['"', '.', ',', "'", '-', ';', ':', '?', '!', '<', '>', '/',
                              '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '`', '~',
@@ -70,23 +70,23 @@ class Preprocessor:
         cols = [f'activity_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        # cnts = ret.sum(1)
-        # epsilon = 1e-15
+        cnts = ret.sum(1)
+        epsilon = 1e-15
 
-        # for col in cols:
-        #     if col in self.idf.keys():
-        #         idf = self.idf[col]
-        #     else:
-        #         idf = df.shape[0] / (ret[col].sum() + 1)
-        #         idf = np.log(idf)
-        #         self.idf[col] = idf
-
-        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-        #     ret[col] *= idf
-
-        cnts = ret.sum(axis=1)
         for col in cols:
-            ret[col] = ret[col] / cnts
+            if col in self.idf.keys():
+                idf = self.idf[col]
+            else:
+                idf = df.shape[0] / (ret[col].sum() + 1)
+                idf = np.log(idf)
+                self.idf[col] = idf
+
+            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+            ret[col] *= idf
+
+        # cnts = ret.sum(axis=1)
+        # for col in cols:
+        #     ret[col] = ret[col] / cnts
 
         return ret
 
@@ -126,23 +126,23 @@ class Preprocessor:
         cols = [f'text_change_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        # cnts = ret.sum(1)
-        # epsilon = 1e-15
+        cnts = ret.sum(1)
+        epsilon = 1e-15
 
-        # for col in cols:
-        #     if col in self.idf.keys():
-        #         idf = self.idf[col]
-        #     else:
-        #         idf = df.shape[0] / (ret[col].sum() + 1)
-        #         idf = np.log(idf)
-        #         self.idf[col] = idf
-
-        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-        #     ret[col] *= idf
-
-        cnts = ret.sum(axis=1)
         for col in cols:
-            ret[col] = ret[col] / cnts
+            if col in self.idf.keys():
+                idf = self.idf[col]
+            else:
+                idf = df.shape[0] / (ret[col].sum() + 1)
+                idf = np.log(idf)
+                self.idf[col] = idf
+
+            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+            ret[col] *= idf
+
+        # cnts = ret.sum(axis=1)
+        # for col in cols:
+        #     ret[col] = ret[col] / cnts
 
         return ret
 
@@ -166,23 +166,23 @@ class Preprocessor:
         cols = [f'{colname}_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        # cnts = ret.sum(1)
-        # epsilon = 1e-15
+        cnts = ret.sum(1)
+        epsilon = 1e-15
 
-        # for col in cols:
-        #     if col in self.idf.keys():
-        #         idf = self.idf[col]
-        #     else:
-        #         idf = df.shape[0] / (ret[col].sum() + 1)
-        #         idf = np.log(idf)
-        #         self.idf[col] = idf
-
-        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-        #     ret[col] *= idf
-
-        cnts = ret.sum(axis=1)
         for col in cols:
-            ret[col] = ret[col] / cnts
+            if col in self.idf.keys():
+                idf = self.idf[col]
+            else:
+                idf = df.shape[0] / (ret[col].sum() + 1)
+                idf = np.log(idf)
+                self.idf[col] = idf
+
+            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+            ret[col] *= idf
+
+        # cnts = ret.sum(axis=1)
+        # for col in cols:
+        #     ret[col] = ret[col] / cnts
 
         return ret
 
@@ -424,9 +424,9 @@ class Preprocessor:
                 else:
                     feats_stat.extend([
                         (f'action_time_gap{gap}', [
-                         'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3]),
+                         'mean', 'std', 'median', 'skew']),
                         (f'cursor_position_change{gap}', [
-                         'max', 'min', 'mean', 'std', 'skew', kurtosis_func, q1, q3]),
+                         'max', 'min', 'mean', 'std', 'skew']),
                         # (f'word_count_change{gap}', [
                         #  'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3])
                     ])
@@ -515,8 +515,6 @@ class Preprocessor:
         # tmp_df = self.idle_time_events_activities_all(df)
         # tmp_df = tmp_df.reset_index()
         # feats = pd.merge(feats, tmp_df, on='id', how='left')
-
-        # feats = feats.fillna(0.0)
 
         print("Engineering ratios data")
         feats['word_time_ratio'] = feats['word_count_last'] / \
