@@ -39,9 +39,19 @@ unzip writing-quality-challenge-constructed-essays.zip
 
 #### 1.  Run Simple Models
 
-```bas
+```bash
 cd models
-python run {file_name}.py
+python {file_name}.py
 ```
 
-Models will be saved in the main directory.
+- Models will be saved in the main directory.
+
+#### 2. Save Features
+
+```bas
+python feature_generator.py
+```
+
+- Final train csv will be saved in ``features.csv `` under the main directory.
+- Feature names will be saved as a list in ``columns.txt`` under the main directory.
+- See exploratory data analysis in ``features_eda.ipynb``
