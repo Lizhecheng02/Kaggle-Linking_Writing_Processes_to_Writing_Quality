@@ -93,7 +93,7 @@ with open('columns.txt', 'w') as file:
     file.write('[')
     for idx, column in enumerate(columns):
         if idx != len(columns) - 1:
-            file.write(column + ', ')
+            file.write("'" + column + "'" + ", ")
         else:
-            file.write(column + ']')
+            file.write("'" + column + "'" + "]")
 print("Save successfully to columns.txt")
