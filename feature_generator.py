@@ -92,8 +92,11 @@ columns = train_feats.columns
 with open('columns.txt', 'w') as file:
     file.write('[')
     for idx, column in enumerate(columns):
-        if idx != len(columns) - 1:
-            file.write("'" + column + "'" + ", ")
+        if column == 'id' or column == 'score':
+            continue
         else:
-            file.write("'" + column + "'" + "]")
+            if idx != len(columns) - 1:
+                file.write("'" + column + "'" + ", ")
+            else:
+                file.write("'" + column + "'" + "]")
 print("Save successfully to columns.txt")
