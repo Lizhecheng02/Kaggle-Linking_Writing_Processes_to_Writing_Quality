@@ -37,13 +37,13 @@ class EssayProcessor:
                 q1, q3, kurtosis_func
             ]
 
-        self.SENT_AGGREGATIONS = [
-            'count', 'mean', 'std', q1, 'median', q3
-        ]
+        # self.SENT_AGGREGATIONS = [
+        #     'count', 'mean', 'std', q1, 'median', q3
+        # ]
 
-        self.PARA_AGGREGATIONS = [
-            'count', 'mean', 'std', q1, 'median', q3, 'min', 'max'
-        ]
+        # self.PARA_AGGREGATIONS = [
+        #     'count', 'mean', 'std', q1, 'median', q3, 'min', 'max'
+        # ]
 
     def split_essays_into_sentences(self, df):
         essay_df = df

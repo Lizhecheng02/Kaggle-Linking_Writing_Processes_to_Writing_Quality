@@ -70,23 +70,23 @@ class Preprocessor:
         cols = [f'activity_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        cnts = ret.sum(1)
-        epsilon = 1e-15
+        # cnts = ret.sum(1)
+        # epsilon = 1e-15
 
-        for col in cols:
-            if col in self.idf.keys():
-                idf = self.idf[col]
-            else:
-                idf = df.shape[0] / (ret[col].sum() + 1)
-                idf = np.log(idf)
-                self.idf[col] = idf
-
-            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-            ret[col] *= idf
-
-        # cnts = ret.sum(axis=1)
         # for col in cols:
-        #     ret[col] = ret[col] / cnts
+        #     if col in self.idf.keys():
+        #         idf = self.idf[col]
+        #     else:
+        #         idf = df.shape[0] / (ret[col].sum() + 1)
+        #         idf = np.log(idf)
+        #         self.idf[col] = idf
+
+        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+        #     ret[col] *= idf
+
+        cnts = ret.sum(axis=1)
+        for col in cols:
+            ret[col] = ret[col] / cnts
 
         return ret
 
@@ -126,23 +126,23 @@ class Preprocessor:
         cols = [f'text_change_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        cnts = ret.sum(1)
-        epsilon = 1e-15
+        # cnts = ret.sum(1)
+        # epsilon = 1e-15
 
-        for col in cols:
-            if col in self.idf.keys():
-                idf = self.idf[col]
-            else:
-                idf = df.shape[0] / (ret[col].sum() + 1)
-                idf = np.log(idf)
-                self.idf[col] = idf
-
-            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-            ret[col] *= idf
-
-        # cnts = ret.sum(axis=1)
         # for col in cols:
-        #     ret[col] = ret[col] / cnts
+        #     if col in self.idf.keys():
+        #         idf = self.idf[col]
+        #     else:
+        #         idf = df.shape[0] / (ret[col].sum() + 1)
+        #         idf = np.log(idf)
+        #         self.idf[col] = idf
+
+        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+        #     ret[col] *= idf
+
+        cnts = ret.sum(axis=1)
+        for col in cols:
+            ret[col] = ret[col] / cnts
 
         return ret
 
@@ -166,23 +166,23 @@ class Preprocessor:
         cols = [f'{colname}_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        cnts = ret.sum(1)
-        epsilon = 1e-15
+        # cnts = ret.sum(1)
+        # epsilon = 1e-15
 
-        for col in cols:
-            if col in self.idf.keys():
-                idf = self.idf[col]
-            else:
-                idf = df.shape[0] / (ret[col].sum() + 1)
-                idf = np.log(idf)
-                self.idf[col] = idf
-
-            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-            ret[col] *= idf
-
-        # cnts = ret.sum(axis=1)
         # for col in cols:
-        #     ret[col] = ret[col] / cnts
+        #     if col in self.idf.keys():
+        #         idf = self.idf[col]
+        #     else:
+        #         idf = df.shape[0] / (ret[col].sum() + 1)
+        #         idf = np.log(idf)
+        #         self.idf[col] = idf
+
+        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+        #     ret[col] *= idf
+
+        cnts = ret.sum(axis=1)
+        for col in cols:
+            ret[col] = ret[col] / cnts
 
         return ret
 
