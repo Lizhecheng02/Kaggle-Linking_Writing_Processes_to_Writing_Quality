@@ -23,11 +23,25 @@ class CFG:
     is_train_cb_optuna = False
 
 
+def q1(x):
+    return x.quantile(0.25)
+
+
+def q3(x):
+    return x.quantile(0.75)
+
+
+AGGREGATIONS = ['count', 'mean', 'min', 'max',
+                'first', 'last', q1, 'median', q3, 'sum']
+
 num_cols = ['down_time', 'up_time', 'action_time',
             'cursor_position', 'word_count']
+
 activities = ['Input', 'Remove/Cut', 'Nonproduction', 'Replace', 'Paste']
+
 events = ['q', 'Space', 'Backspace', 'Shift', 'ArrowRight', 'Leftclick', 'ArrowLeft',
           '.', ',', 'ArrowDown', 'ArrowUp', 'Enter', 'CapsLock', "'", 'Delete', 'Unidentified']
+
 text_changes = ['q', ' ', '.', ',', '\n', "'",
                 '"', '-', '?', ';', '=', '/', '\\', ':']
 
@@ -89,7 +103,9 @@ def dev_feats(df):
         pl.median(num_cols).suffix('_median'),
         pl.min(num_cols).suffix('_min'),
         pl.max(num_cols).suffix('_max'),
-        pl.quantile(num_cols, 0.5).suffix('_quantile'))
+        pl.quantile(num_cols, 0.25).suffix('_quantile25'),
+        pl.quantile(num_cols, 0.75).suffix('_quantile75')
+    )
     feats = feats.join(temp, on='id', how='left')
 
     print("< Categorical columns features >")
@@ -112,20 +128,58 @@ def dev_feats(df):
         mean_pause_time=pl.mean('time_diff'),
         std_pause_time=pl.std('time_diff'),
         total_pause_time=pl.sum('time_diff'),
+        pauses_zero_sec=pl.col('time_diff').filter(  # 新增特征
+            pl.col('time_diff') < 0.5).count(),
+        pauses_zero_sec_mean=pl.col('time_diff').filter(
+            pl.col('time_diff') < 0.5).mean(),
+        pauses_zero_sec_std=pl.col('time_diff').filter(
+            pl.col('time_diff') < 0.5).std(),
+        pauses_zero_sec_quantile=pl.col('time_diff').filter(
+            pl.col('time_diff') < 0.5).quantile(0.5),
         pauses_half_sec=pl.col('time_diff').filter(
             (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)
         ).count(),
+        pauses_half_sec_mean=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)).mean(),
+        pauses_half_sec_std=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)).std(),
+        pauses_half_sec_quantile=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)).quantile(0.5),
         pauses_1_sec=pl.col('time_diff').filter(
             (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)
         ).count(),
+        pauses_1_sec_mean=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)).mean(),
+        pauses_1_sec_std=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)).std(),
+        pauses_1_sec_quantile=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)).quantile(0.5),
         pauses_1_half_sec=pl.col('time_diff').filter(
             (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)
         ).count(),
+        pauses_1_half_sec_mean=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)).mean(),
+        pauses_1_half_sec_std=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)).std(),
+        pauses_1_half_sec_quantile=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)).quantile(0.5),
         pauses_2_sec=pl.col('time_diff').filter(
             (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)
         ).count(),
+        pauses_2_sec_mean=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)).mean(),
+        pauses_2_sec_std=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)).std(),
+        pauses_2_sec_quantile=pl.col('time_diff').filter(
+            (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)).quantile(0.5),
         pauses_3_sec=pl.col('time_diff').filter(
-            pl.col('time_diff') > 3).count()
+            pl.col('time_diff') > 3).count(),
+        pauses_3_sec_mean=pl.col('time_diff').filter(
+            pl.col('time_diff') > 3).mean(),
+        pauses_3_sec_std=pl.col('time_diff').filter(
+            pl.col('time_diff') > 3).std(),
+        pauses_3_sec_quantile=pl.col('time_diff').filter(
+            pl.col('time_diff') > 3).quantile(0.5)
     )
     feats = feats.join(temp, on='id', how='left')
 
@@ -169,18 +223,6 @@ def dev_feats(df):
     feats = feats.join(temp, on='id', how='left')
 
     return feats
-
-
-def q1(x):
-    return x.quantile(0.25)
-
-
-def q3(x):
-    return x.quantile(0.75)
-
-
-AGGREGATIONS = ['count', 'mean', 'min', 'max',
-                'first', 'last', q1, 'median', q3, 'sum']
 
 
 def reconstruct_essay(currTextInput):
@@ -325,6 +367,8 @@ train_feats = train_feats.merge(product_to_keys(
 print('< Mapping >')
 train_scores = pd.read_csv(data_path + 'train_scores.csv')
 data = train_feats.merge(train_scores, on='id', how='left')
+data.to_csv("baseline_features.csv", index=False)
+
 x = data.drop(['id', 'score'], axis=1)
 y = data['score'].values
 print(f'Number of features: {len(x.columns)}')
@@ -405,6 +449,7 @@ def train_lgbm_model(train_feats, test_feats):
         'num_leaves': 11,
         'max_depth': 27,
         'min_child_samples': 17,
+        "n_estimators": 11_861,
         'n_jobs': 4
     }
 
@@ -422,7 +467,6 @@ def train_lgbm_model(train_feats, test_feats):
                 "objective": "regression",
                 "metric": "rmse",
                 "random_state": 42,
-                "n_estimators": 11_861,
                 "verbosity": 1,
                 **best_params
             }
@@ -483,6 +527,7 @@ def train_xgb_model(train_feats, test_feats):
         'learning_rate': 0.002,
         'max_depth': 27,
         'min_child_weight': 1.0,
+        "n_estimators": 11_861,
         'n_jobs': 4
     }
 
@@ -500,7 +545,6 @@ def train_xgb_model(train_feats, test_feats):
                 "objective": "reg:squarederror",
                 "eval_metric": "rmse",
                 "random_state": 42,
-                "n_estimators": 11_861,
                 "verbosity": 0,
                 **best_params
             }
@@ -560,7 +604,8 @@ def train_cb_model(train_feats, test_feats):
         'learning_rate': 0.002,
         'depth': 6,
         'thread_count': 4,
-        'min_child_samples': 7
+        'min_child_samples': 7,
+        'iterations': 11_861,
     }
 
     for i in range(EPOCHS):
@@ -575,7 +620,6 @@ def train_cb_model(train_feats, test_feats):
             X_valid, y_valid = train_feats.iloc[valid_idx][train_cols], train_feats.iloc[valid_idx][target_col]
 
             model = cb.CatBoostRegressor(
-                iterations=11_861,
                 loss_function='RMSE',
                 random_seed=2023,
                 verbose=True,
@@ -632,7 +676,7 @@ def train_lgbm_optuna(train_feats, test_feats):
             'reg_lambda': trial.suggest_float("reg_lambda", 0.0, 5.0),
             'colsample_bytree': trial.suggest_float("colsample_bytree", 0.4, 1.0),
             'subsample': trial.suggest_float("subsample", 0.4, 1.0),
-            'learning_rate': 0.002,
+            'learning_rate': trial.suggest_float("learning_rate", 1e-4, 1e-1),
             'num_leaves': trial.suggest_int("num_leaves", 5, 50),
             'max_depth': trial.suggest_int("max_depth", 5, 30),
             'min_child_samples': trial.suggest_int("min_child_samples", 2, 30),
@@ -715,7 +759,7 @@ def train_xgb_optuna(train_feats):
             'reg_lambda': trial.suggest_float("reg_lambda", 0.0, 5.0),
             'colsample_bytree': trial.suggest_float("colsample_bytree", 0.4, 1.0),
             'subsample': trial.suggest_float("subsample", 0.4, 1.0),
-            'learning_rate': 0.001,
+            'learning_rate': trial.suggest_float("learning_rate", 1e-4, 1e-1),
             'max_depth': trial.suggest_int("max_depth", 5, 30),
             'min_child_weight': trial.suggest_float("min_child_weight", 1.0, 5.0),
             'gamma': trial.suggest_float("gamma", 0.0, 10.0),
