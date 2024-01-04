@@ -137,8 +137,7 @@ def dev_feats(df):
         pauses_zero_sec_quantile=pl.col('time_diff').filter(
             pl.col('time_diff') < 0.5).quantile(0.5),
         pauses_half_sec=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)
-        ).count(),
+            (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)).count(),
         pauses_half_sec_mean=pl.col('time_diff').filter(
             (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)).mean(),
         pauses_half_sec_std=pl.col('time_diff').filter(
@@ -146,8 +145,7 @@ def dev_feats(df):
         pauses_half_sec_quantile=pl.col('time_diff').filter(
             (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)).quantile(0.5),
         pauses_1_sec=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)
-        ).count(),
+            (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)).count(),
         pauses_1_sec_mean=pl.col('time_diff').filter(
             (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)).mean(),
         pauses_1_sec_std=pl.col('time_diff').filter(
@@ -155,8 +153,7 @@ def dev_feats(df):
         pauses_1_sec_quantile=pl.col('time_diff').filter(
             (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)).quantile(0.5),
         pauses_1_half_sec=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)
-        ).count(),
+            (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)).count(),
         pauses_1_half_sec_mean=pl.col('time_diff').filter(
             (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)).mean(),
         pauses_1_half_sec_std=pl.col('time_diff').filter(
@@ -164,8 +161,7 @@ def dev_feats(df):
         pauses_1_half_sec_quantile=pl.col('time_diff').filter(
             (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)).quantile(0.5),
         pauses_2_sec=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)
-        ).count(),
+            (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)).count(),
         pauses_2_sec_mean=pl.col('time_diff').filter(
             (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)).mean(),
         pauses_2_sec_std=pl.col('time_diff').filter(
@@ -922,3 +918,23 @@ if CFG.is_train_xgb_model:
 
 if CFG.is_train_cb_model:
     cb_preds = train_cb_model(train_feats=data, test_feats=test_feats)
+
+
+def generate_weights():
+    alpha = [1, 1, 1]
+    random_numbers = np.random.dirichlet(alpha)
+    weights = random_numbers.tolist()
+    return weights
+
+
+weights = generate_weights()
+print(weights)
+
+test_preds = np.zeros(test_feats.shape[0])
+test_preds = lgbm_preds * weights[0] + \
+    xgb_preds * weights[1] + cb_preds * weights[2]
+
+test_feats['score'] = test_preds
+submission = test_feats[['id', 'score']]
+submission.to_csv('submission.csv', index=False)
+submission.head()
