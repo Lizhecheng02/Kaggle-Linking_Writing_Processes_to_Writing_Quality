@@ -728,7 +728,7 @@ def train_lgbm_optuna(train_feats, test_feats):
         return np.mean(scores)
 
     study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=20)
+    study.optimize(objective, n_trials=100)
 
     print("LightGBM Best trial:")
     trial = study.best_trial
@@ -811,7 +811,7 @@ def train_xgb_optuna(train_feats):
         return np.mean(scores)
 
     study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=20)
+    study.optimize(objective, n_trials=100)
 
     print("XGBoost Best trial:")
     trial = study.best_trial
@@ -890,7 +890,7 @@ def train_cb_optuna(train_feats):
         return np.mean(scores)
 
     study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=30)
+    study.optimize(objective, n_trials=100)
 
     print("CatBoost Best trial:")
     trial = study.best_trial
