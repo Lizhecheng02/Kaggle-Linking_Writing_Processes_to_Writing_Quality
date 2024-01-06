@@ -4,6 +4,7 @@ import numpy as np
 import re
 import os
 from sklearn import metrics, model_selection
+from collections import defaultdict, Counter
 import lightgbm as lgb
 import xgboost as xgb
 import catboost as cb
@@ -33,6 +34,8 @@ def q3(x):
 
 AGGREGATIONS = ['count', 'mean', 'min', 'max',
                 'first', 'last', q1, 'median', q3, 'sum']
+
+WORD_AGGREGATIONS = ['count', 'mean', 'max', q1, 'median', q3, 'sum']
 
 num_cols = ['down_time', 'up_time', 'action_time',
             'cursor_position', 'word_count']
@@ -240,7 +243,6 @@ def get_essay_df(df):
 
 
 def word_feats(df):
-    essay_df = df
     df['word'] = df['essay'].apply(lambda x: re.split(' |\\n|\\.|\\?|\\!', x))
     df = df.explode('word')
     df['word_len'] = df['word'].apply(lambda x: len(x))
@@ -250,6 +252,18 @@ def word_feats(df):
     word_agg_df.columns = ['_'.join(x) for x in word_agg_df.columns]
     word_agg_df['id'] = word_agg_df.index
     word_agg_df = word_agg_df.reset_index(drop=True)
+
+    print(word_agg_df.shape)
+
+    for word_l in [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
+        word_agg_df[f'word_len_ge_{word_l}_count'] = \
+            df[df['word_len'] >= word_l].groupby(['id']).count().iloc[:, 0]
+        word_agg_df[f'word_len_ge_{word_l}_count'] = \
+            word_agg_df[f'word_len_ge_{word_l}_count'].fillna(0)
+    word_agg_df = word_agg_df.reset_index(drop=True)
+
+    print(word_agg_df.shape)
+
     return word_agg_df
 
 
