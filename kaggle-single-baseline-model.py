@@ -129,53 +129,23 @@ def dev_feats(df):
         std_pause_time=pl.std('time_diff'),
         total_pause_time=pl.sum('time_diff'),
         pauses_zero_sec=pl.col('time_diff').filter(  # 新增特征
-            pl.col('time_diff') < 0.5).count(),
-        pauses_zero_sec_mean=pl.col('time_diff').filter(
-            pl.col('time_diff') < 0.5).mean(),
-        pauses_zero_sec_std=pl.col('time_diff').filter(
-            pl.col('time_diff') < 0.5).std(),
-        pauses_zero_sec_quantile=pl.col('time_diff').filter(
-            pl.col('time_diff') < 0.5).quantile(0.5),
+            pl.col('time_diff') < 0.5
+        ).count(),
         pauses_half_sec=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)).count(),
-        pauses_half_sec_mean=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)).mean(),
-        pauses_half_sec_std=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)).std(),
-        pauses_half_sec_quantile=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)).quantile(0.5),
+            (pl.col('time_diff') > 0.5) & (pl.col('time_diff') < 1)
+        ).count(),
         pauses_1_sec=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)).count(),
-        pauses_1_sec_mean=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)).mean(),
-        pauses_1_sec_std=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)).std(),
-        pauses_1_sec_quantile=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)).quantile(0.5),
+            (pl.col('time_diff') > 1) & (pl.col('time_diff') < 1.5)
+        ).count(),
         pauses_1_half_sec=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)).count(),
-        pauses_1_half_sec_mean=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)).mean(),
-        pauses_1_half_sec_std=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)).std(),
-        pauses_1_half_sec_quantile=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)).quantile(0.5),
+            (pl.col('time_diff') > 1.5) & (pl.col('time_diff') < 2)
+        ).count(),
         pauses_2_sec=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)).count(),
-        pauses_2_sec_mean=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)).mean(),
-        pauses_2_sec_std=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)).std(),
-        pauses_2_sec_quantile=pl.col('time_diff').filter(
-            (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)).quantile(0.5),
+            (pl.col('time_diff') > 2) & (pl.col('time_diff') < 3)
+        ).count(),
         pauses_3_sec=pl.col('time_diff').filter(
-            pl.col('time_diff') > 3).count(),
-        pauses_3_sec_mean=pl.col('time_diff').filter(
-            pl.col('time_diff') > 3).mean(),
-        pauses_3_sec_std=pl.col('time_diff').filter(
-            pl.col('time_diff') > 3).std(),
-        pauses_3_sec_quantile=pl.col('time_diff').filter(
-            pl.col('time_diff') > 3).quantile(0.5)
+            pl.col('time_diff') > 3
+        ).count()
     )
     feats = feats.join(temp, on='id', how='left')
 
