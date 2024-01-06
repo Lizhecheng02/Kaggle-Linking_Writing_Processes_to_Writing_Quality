@@ -64,23 +64,23 @@ class Preprocessor:
         cols = [f'activity_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        # cnts = ret.sum(1)
-        # epsilon = 1e-15
+        cnts = ret.sum(1)
+        epsilon = 1e-15
 
-        # for col in cols:
-        #     if col in self.idf.keys():
-        #         idf = self.idf[col]
-        #     else:
-        #         idf = df.shape[0] / (ret[col].sum() + 1)
-        #         idf = np.log(idf)
-        #         self.idf[col] = idf
-
-        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-        #     ret[col] *= idf
-
-        cnts = ret.sum(axis=1)
         for col in cols:
-            ret[col] = ret[col] / cnts
+            if col in self.idf.keys():
+                idf = self.idf[col]
+            else:
+                idf = df.shape[0] / (ret[col].sum() + 1)
+                idf = np.log(idf)
+                self.idf[col] = idf
+
+            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+            ret[col] *= idf
+
+        # cnts = ret.sum(axis=1)
+        # for col in cols:
+        #     ret[col] = ret[col] / cnts
 
         return ret
 
@@ -120,23 +120,23 @@ class Preprocessor:
         cols = [f'text_change_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        # cnts = ret.sum(1)
-        # epsilon = 1e-15
+        cnts = ret.sum(1)
+        epsilon = 1e-15
 
-        # for col in cols:
-        #     if col in self.idf.keys():
-        #         idf = self.idf[col]
-        #     else:
-        #         idf = df.shape[0] / (ret[col].sum() + 1)
-        #         idf = np.log(idf)
-        #         self.idf[col] = idf
-
-        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-        #     ret[col] *= idf
-
-        cnts = ret.sum(axis=1)
         for col in cols:
-            ret[col] = ret[col] / cnts
+            if col in self.idf.keys():
+                idf = self.idf[col]
+            else:
+                idf = df.shape[0] / (ret[col].sum() + 1)
+                idf = np.log(idf)
+                self.idf[col] = idf
+
+            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+            ret[col] *= idf
+
+        # cnts = ret.sum(axis=1)
+        # for col in cols:
+        #     ret[col] = ret[col] / cnts
 
         return ret
 
@@ -160,23 +160,23 @@ class Preprocessor:
         cols = [f'{colname}_{i}_count' for i in range(len(ret.columns))]
         ret.columns = cols
 
-        # cnts = ret.sum(1)
-        # epsilon = 1e-15
+        cnts = ret.sum(1)
+        epsilon = 1e-15
 
-        # for col in cols:
-        #     if col in self.idf.keys():
-        #         idf = self.idf[col]
-        #     else:
-        #         idf = df.shape[0] / (ret[col].sum() + 1)
-        #         idf = np.log(idf)
-        #         self.idf[col] = idf
-
-        #     ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
-        #     ret[col] *= idf
-
-        cnts = ret.sum(axis=1)
         for col in cols:
-            ret[col] = ret[col] / cnts
+            if col in self.idf.keys():
+                idf = self.idf[col]
+            else:
+                idf = df.shape[0] / (ret[col].sum() + 1)
+                idf = np.log(idf)
+                self.idf[col] = idf
+
+            ret[col] = 1 + np.log((ret[col] + epsilon) / (cnts + epsilon))
+            ret[col] *= idf
+
+        # cnts = ret.sum(axis=1)
+        # for col in cols:
+        #     ret[col] = ret[col] / cnts
 
         return ret
 
@@ -285,17 +285,10 @@ class Preprocessor:
         print("Engineering statistical summaries for features")
 
         feats_stat = [
-            ('event_id', ['max']),
-            ('up_time', ['max']),
-            ('action_time', ['mean', 'median', 'sem', 'sum', 'skew']),
-            # ('activity', ['nunique']),
-            # ('down_event', ['nunique']),
-            # ('up_event', ['nunique']),
-            # ('text_change', ['nunique']),
-            ('cursor_position', ['nunique', 'max', 'last',
-                                 'median', 'sem', q1, q3]),
-            ('word_count', ['nunique', 'max', 'last',
-                            'median', 'sem', q1, q3])
+            ('activity', ['nunique']),
+            ('down_event', ['nunique']),
+            ('up_event', ['nunique']),
+            ('text_change', ['nunique'])
         ]
 
         for gap in self.gaps:
@@ -304,18 +297,14 @@ class Preprocessor:
                     (f'action_time_gap{gap}', [
                         'sum', 'mean', 'std', 'median', 'skew']),
                     (f'cursor_position_change{gap}', [
-                        'sum', 'max', 'min', 'mean', 'std', 'skew']),
-                    # (f'word_count_change{gap}', [
-                    #  'sum', 'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3])
+                        'sum', 'max', 'min', 'mean', 'std', 'skew'])
                 ])
             else:
                 feats_stat.extend([
                     (f'action_time_gap{gap}', [
                         'mean', 'std', 'median', 'skew']),
                     (f'cursor_position_change{gap}', [
-                        'max', 'min', 'mean', 'std', 'skew']),
-                    # (f'word_count_change{gap}', [
-                    #  'max', 'min', 'mean', 'std', 'median', 'skew', kurtosis_func, q1, q3])
+                        'max', 'min', 'mean', 'std', 'skew'])
                 ])
 
         pbar = tqdm(feats_stat)
@@ -365,6 +354,6 @@ class Preprocessor:
 
         print("Engineering ratios data")
 
-        feats.drop(columns=['up_time_max', 'event_id_max'], inplace=True)
+        # feats.drop(columns=['up_time_max', 'event_id_max'], inplace=True)
 
         return feats
