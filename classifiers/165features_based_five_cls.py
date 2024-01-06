@@ -483,7 +483,6 @@ for i in range(EPOCHS):
         n_splits=SPLIT, random_state=42 + i * 10, shuffle=True
     )
     valid_preds = np.zeros(train_feats.shape[0])
-    X_test = test_feats[train_cols]
 
     for fold, (train_idx, valid_idx) in enumerate(kf.split(train_feats)):
         print(f'Epoch: {i + 1} Fold: {fold + 1}')
@@ -511,11 +510,7 @@ for i in range(EPOCHS):
 
         valid_predict = model.predict(X_valid)
         valid_preds[valid_idx] = valid_predict
-        preds[valid_idx, 0] += valid_predict.astype(float) / EPOCHS
-
-        test_predict = model.predict(X_test)
-        test_predict = test_predict.astype(float)
-        TEST_PREDS[:, 0] += test_predict / EPOCHS / SPLIT
+        preds[valid_idx, 0] += valid_predict.astype(int)
 
         score = metrics.accuracy_score(y_valid, valid_predict)
         model_dict[f'Epoch{i + 1}-Fold{fold + 1}'] = model
