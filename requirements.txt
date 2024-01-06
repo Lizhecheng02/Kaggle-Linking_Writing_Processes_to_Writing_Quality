@@ -13,5 +13,4 @@ matplotlib
 catboost
 xgboost
 polars
-polars-lts-cpu
 pyarrow
