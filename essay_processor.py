@@ -17,33 +17,40 @@ class EssayProcessor:
 
         def kurtosis_func(x): return x.kurt()
 
-        if self.device == "cpu":
-            self.SENT_AGGREGATIONS = [
-                'count', 'mean', 'std', 'min', 'max',
-                q1, 'median', q3, 'skew', kurtosis_func
-            ]
-            self.PARA_AGGREGATIONS = [
-                'count', 'mean', 'std', 'min', 'max', 'first',
-                'last', 'sem', q1, 'median', q3, 'skew', 'sum', kurtosis_func
-            ]
-        elif self.device == "cuda":
-            self.SENT_AGGREGATIONS = [
-                'count', 'mean', 'std', 'min',
-                'max', 'median', 'skew', q1, q3, kurtosis_func
-            ]
-            self.PARA_AGGREGATIONS = [
-                'count', 'mean', 'std', 'min', 'max',
-                'first', 'last', 'sem', 'median', 'skew', 'sum',
-                q1, q3, kurtosis_func
-            ]
+        self.SENT_AGGREGATIONS = [
+            'count', 'mean', 'std', q1, 'median', q3
+        ]
 
-        # self.SENT_AGGREGATIONS = [
-        #     'count', 'mean', 'std', q1, 'median', q3
-        # ]
+        self.PARA_AGGREGATIONS = [
+            'count', 'mean', 'std', q1, 'median', q3, 'min', 'max'
+        ]
 
-        # self.PARA_AGGREGATIONS = [
-        #     'count', 'mean', 'std', q1, 'median', q3, 'min', 'max'
-        # ]
+        self.WORD_AGGREGATIONS = [
+            'count', 'mean', 'std', 'max', q1, 'median', q3
+        ]
+
+    def split_essays_into_words(self, df):
+        essay_df = df
+        essay_df['word'] = essay_df['essay'].apply(
+            lambda x: re.split(' |\\n|\\.|\\?|\\!', x))
+        essay_df = essay_df.explode('word')
+        essay_df['word_len'] = essay_df['word'].apply(lambda x: len(x))
+        essay_df = essay_df[essay_df['word_len'] != 0]
+        return essay_df
+
+    def compute_word_aggregations(self, word_df):
+        word_agg_df = word_df[['id', 'word_len']].groupby(
+            ['id']).agg(self.WORD_AGGREGATIONS)
+        word_agg_df.columns = ['_'.join(x) for x in word_agg_df.columns]
+        word_agg_df['id'] = word_agg_df.index
+        for word_l in [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
+            word_agg_df[f'word_len_ge_{word_l}_count'] = \
+                word_df[word_df['word_len'] >= word_l].groupby(
+                    ['id']).count().iloc[:, 0]
+            word_agg_df[f'word_len_ge_{word_l}_count'] = \
+                word_agg_df[f'word_len_ge_{word_l}_count'].fillna(0)
+        word_agg_df = word_agg_df.reset_index(drop=True)
+        return word_agg_df
 
     def split_essays_into_sentences(self, df):
         essay_df = df
@@ -102,6 +109,12 @@ class EssayProcessor:
         paragraph_agg_df = paragraph_agg_df.rename(
             columns={"paragraph_len_count": "paragraph_count"})
         return paragraph_agg_df
+
+    def word_processor(self, df):
+        word_df = self.split_essays_into_words(df)
+        word_agg_df = self.compute_word_aggregations(word_df)
+        print("The shape of word agg:", word_agg_df.shape)
+        return word_agg_df
 
     def sentence_processor(self, df):
         sent_df = self.split_essays_into_sentences(df)
