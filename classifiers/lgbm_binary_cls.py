@@ -48,25 +48,17 @@ test_feats = preprocessor.make_feats(test_logs)
 print("The shape of train_feats after mainprocessor: ", train_feats.shape)
 print("The shape of test_feats after mainprocessor: ",test_feats.shape)
 
-nan_cols = train_feats.columns[train_feats.isna().any()].tolist()
-print("nan_cols:", nan_cols)
-
-train_feats = train_feats.drop(columns=nan_cols)
-test_feats = test_feats.drop(columns=nan_cols)
-print(train_feats.shape)
-print(test_feats.shape)
-
 timeprocessor = TimeProcessor()
-train_agg_fe_df1 = timeprocessor.train_processor1(train_logs)
-train_agg_fe_df2 = timeprocessor.train_processor2(train_logs)
-test_agg_fe_df1 = timeprocessor.test_processor1(test_logs)
-test_agg_fe_df2 = timeprocessor.test_processor2(test_logs)
-train_feats = train_feats.merge(train_agg_fe_df1, on="id", how="left")
-train_feats = train_feats.merge(train_agg_fe_df2, on='id', how='left')
-test_feats = test_feats.merge(test_agg_fe_df1, on='id', how='left')
-test_feats = test_feats.merge(test_agg_fe_df2, on='id', how='left')
-print("The shape of train_feats after timeprocessor: ", train_feats.shape)
-print("The shape of test_feats after timeprocessor: ", test_feats.shape)
+# train_agg_fe_df1 = timeprocessor.train_processor1(train_logs)
+# train_agg_fe_df2 = timeprocessor.train_processor2(train_logs)
+# test_agg_fe_df1 = timeprocessor.test_processor1(test_logs)
+# test_agg_fe_df2 = timeprocessor.test_processor2(test_logs)
+# train_feats = train_feats.merge(train_agg_fe_df1, on="id", how="left")
+# train_feats = train_feats.merge(train_agg_fe_df2, on='id', how='left')
+# test_feats = test_feats.merge(test_agg_fe_df1, on='id', how='left')
+# test_feats = test_feats.merge(test_agg_fe_df2, on='id', how='left')
+# print("The shape of train_feats after timeprocessor: ", train_feats.shape)
+# print("The shape of test_feats after timeprocessor: ", test_feats.shape)
 
 train_pause_features, test_pause_features = timeprocessor.additional_processor(train_logs, test_logs)
 train_feats = train_feats.merge(train_pause_features, on='id', how='left')
@@ -82,6 +74,14 @@ test_feats = test_feats.merge(test_sent_agg_df, on='id', how='left')
 test_feats = test_feats.merge(test_paragraph_agg_df, on='id', how='left')
 test_feats = test_feats.fillna(0.0)
 print("The final shape of test_feats:", test_feats.shape)
+
+nan_cols = train_feats.columns[train_feats.isna().any()].tolist()
+print("nan_cols:", nan_cols)
+
+train_feats = train_feats.drop(columns=nan_cols)
+test_feats = test_feats.drop(columns=nan_cols)
+print(train_feats.shape)
+print(test_feats.shape)
 
 target_col = ['score']
 drop_cols = ['id']
@@ -105,7 +105,7 @@ print("Number of label1:", count_label1)
 
 TEST_PREDS = np.zeros((len(test_feats), 1))
 
-os.makedirs('../cls_lgb_models', exist_ok=True)
+os.makedirs('./cls_lgb_models', exist_ok=True)
 
 EPOCHS = 5
 SPLIT = 2
@@ -165,7 +165,7 @@ for i in range(EPOCHS):
         
         score = metrics.accuracy_score(y_valid, valid_predict)
         model_dict[f'Epoch{i + 1}-Fold{fold + 1}'] = model
-        model.booster_.save_model(f'../cls_lgb_models/lgbm_model_epoch{i + 1}_fold{fold + 1}.txt')
+        model.booster_.save_model(f'./cls_lgb_models/lgbm_model_epoch{i + 1}_fold{fold + 1}.txt')
         
     final_score = metrics.accuracy_score(train_feats[target_col], valid_preds)
     scores.append(final_score)
