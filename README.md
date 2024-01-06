@@ -17,8 +17,8 @@ pip install -r requirements.txt
 #### 1. Set Kaggle Api
 
 ```bash
-export KAGGLE_USERNAME=your_kaggle_username
-export KAGGLE_KEY=your_api_key
+export KAGGLE_USERNAME="your_kaggle_username"
+export KAGGLE_KEY="your_api_key"
 ```
 
 #### 2. Download Dataset
@@ -48,10 +48,17 @@ python {file_name}.py
 
 #### 2. Save Features
 
-```bas
+```bash
 python feature_generator.py
 ```
 
 - Final train csv will be saved in ``features.csv `` under the main directory.
 - Feature names will be saved as a list in ``columns.txt`` under the main directory.
 - See exploratory data analysis in ``features_eda.ipynb``
+
+#### 3. Run Classification Models (Poor Results)
+
+```bash
+cd classifiers
+python {file_name}.py
+```
