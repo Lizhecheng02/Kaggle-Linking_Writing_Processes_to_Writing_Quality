@@ -668,7 +668,7 @@ def train_cb_model(train_feats, test_feats):
     return TEST_PREDS
 
 
-def train_lgbm_optuna(train_feats, test_feats):
+def train_lgbm_optuna(train_feats):
     os.makedirs('../baseline_lgb_models_optuna', exist_ok=True)
 
     def objective(trial):
