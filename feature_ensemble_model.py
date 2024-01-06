@@ -254,7 +254,7 @@ def word_feats(df):
     word_agg_df['id'] = word_agg_df.index
     word_agg_df = word_agg_df.reset_index(drop=True)
 
-    print(word_agg_df.shape)
+    # print(word_agg_df.shape)
 
     for word_l in [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
         word_agg_df[f'word_len_ge_{word_l}_count'] = \
@@ -263,7 +263,7 @@ def word_feats(df):
             word_agg_df[f'word_len_ge_{word_l}_count'].fillna(0)
     word_agg_df = word_agg_df.reset_index(drop=True)
 
-    print(word_agg_df.shape)
+    # print(word_agg_df.shape)
 
     return word_agg_df
 
@@ -335,13 +335,13 @@ data_path = './'
 train_logs = pl.scan_csv(data_path + 'train_logs.csv')
 train_feats = dev_feats(train_logs)
 train_feats = train_feats.collect().to_pandas()
+train_logs = train_logs.collect().to_pandas()
 
 print('< Main Processor >')
 train_feats = train_feats.merge(
     preprocessor.make_feats(train_logs), on='id', how='left')
 
 print('< Essay Reconstruction >')
-train_logs = train_logs.collect().to_pandas()
 train_essays = get_essay_df(train_logs)
 train_feats = train_feats.merge(word_feats(train_essays), on='id', how='left')
 train_feats = train_feats.merge(sent_feats(train_essays), on='id', how='left')
@@ -375,8 +375,8 @@ print('< Testing Data >')
 test_logs = pl.scan_csv(data_path + 'test_logs.csv')
 test_feats = dev_feats(test_logs)
 test_feats = test_feats.collect().to_pandas()
-
 test_logs = test_logs.collect().to_pandas()
+
 test_essays = get_essay_df(test_logs)
 test_feats = test_feats.merge(
     preprocessor.make_feats(test_logs), on='id', how='left')
