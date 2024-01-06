@@ -360,6 +360,15 @@ train_feats = train_feats.merge(
 train_feats = train_feats.merge(product_to_keys(
     train_logs, train_essays), on='id', how='left')
 
+train_feats['word_time_ratio'] = train_feats['word_count_max'] / \
+    train_feats['up_time_max']
+train_feats['position_time_ratio'] = train_feats['cursor_position_max'] / \
+    train_feats['up_time_max']
+train_feats['word_per_action_time'] = train_feats['word_count_max'] / \
+    train_feats['action_time_sum']
+train_feats['position_per_action_time'] = train_feats['cursor_position_max'] / \
+    train_feats['action_time_sum']
+
 print('< Mapping >')
 train_scores = pd.read_csv(data_path + 'train_scores.csv')
 data = train_feats.merge(train_scores, on='id', how='left')
@@ -384,6 +393,15 @@ test_feats = test_feats.merge(
     get_keys_pressed_per_second(test_logs), on='id', how='left')
 test_feats = test_feats.merge(product_to_keys(
     test_logs, test_essays), on='id', how='left')
+
+test_feats['word_time_ratio'] = test_feats['word_count_max'] / \
+    test_feats['up_time_max']
+test_feats['position_time_ratio'] = test_feats['cursor_position_max'] / \
+    test_feats['up_time_max']
+test_feats['word_per_action_time'] = test_feats['word_count_max'] / \
+    test_feats['action_time_sum']
+test_feats['position_per_action_time'] = test_feats['cursor_position_max'] / \
+    test_feats['action_time_sum']
 
 test_ids = test_feats['id'].values
 testin_x = test_feats.drop(['id'], axis=1)
@@ -698,7 +716,8 @@ def train_lgbm_optuna(train_feats, test_feats):
                 }
                 model = lgb.LGBMRegressor(**params)
                 early_stopping_callback = lgb.early_stopping(
-                    100, first_metric_only=True, verbose=True)
+                    100, first_metric_only=True, verbose=False
+                )
 
                 model.fit(
                     X_train, y_train,
@@ -766,7 +785,8 @@ def train_xgb_optuna(train_feats):
 
         for i in range(EPOCHS):
             kf = model_selection.KFold(
-                n_splits=SPLIT, random_state=42 + i * 10, shuffle=True)
+                n_splits=SPLIT, random_state=42 + i * 10, shuffle=True
+            )
             valid_preds = np.zeros(train_feats.shape[0])
 
             for fold, (train_idx, valid_idx) in enumerate(kf.split(train_feats)):
@@ -786,7 +806,7 @@ def train_xgb_optuna(train_feats):
                     X_train, y_train,
                     eval_set=[(X_valid, y_valid)],
                     early_stopping_rounds=100,
-                    verbose=True
+                    verbose=False
                 )
 
                 valid_predict = model.predict(X_valid)
@@ -838,7 +858,7 @@ def train_cb_optuna(train_feats):
             'colsample_bylevel': trial.suggest_float('colsample_bylevel', 0.1, 1.0),
             'subsample': trial.suggest_float('subsample', 0.1, 1.0),
             'learning_rate': trial.suggest_float('learning_rate', 1e-5, 1e-1, log=True),
-            'depth': trial.suggest_int('depth', 1, 6),
+            'depth': trial.suggest_int('depth', 1, 10),
             'iterations': trial.suggest_int('iterations', 1000, 15000),
             'min_child_samples': trial.suggest_int('min_child_samples', 1, 20),
             'thread_count': 4
@@ -857,7 +877,7 @@ def train_cb_optuna(train_feats):
                 model = cb.CatBoostRegressor(
                     loss_function='RMSE',
                     random_seed=2023,
-                    verbose=True,
+                    verbose=False,
                     **best_params
                 )
 
