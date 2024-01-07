@@ -52,13 +52,13 @@ class Preprocessor:
             di = dict()
             for k in self.activities:
                 di[k] = 0
-            di["Move"] = 0
+            # di["Move"] = 0
             for item in items:
                 k, v = item[0], item[1]
                 if k in di:
                     di[k] = v
-                else:
-                    di["Move"] += v
+                # else:
+                #     di["Move"] += v
             ret.append(di)
         ret = pd.DataFrame(ret)
         cols = [f'activity_{i}_count' for i in range(len(ret.columns))]
@@ -106,15 +106,15 @@ class Preprocessor:
             di = dict()
             for k in self.text_changes:
                 di[k] = 0
-            di['Change'] = 0
+            # di['Change'] = 0
             for item in items:
                 k, v = item[0], item[1]
                 if k in di:
                     di[k] = v
                 elif k.find('q') != -1 and not k.find('=>') != -1:
                     di['q'] += v
-                elif k.find('=>') != -1:
-                    di['Change'] += v
+                # elif k.find('=>') != -1:
+                #     di['Change'] += v
             ret.append(di)
         ret = pd.DataFrame(ret)
         cols = [f'text_change_{i}_count' for i in range(len(ret.columns))]
@@ -148,13 +148,13 @@ class Preprocessor:
             di = dict()
             for k in self.events:
                 di[k] = 0
-            di['Other'] = 0
+            # di['Other'] = 0
             for item in items:
                 k, v = item[0], item[1]
                 if k in di:
                     di[k] = v
-                else:
-                    di['Other'] += v
+                # else:
+                #     di['Other'] += v
             ret.append(di)
         ret = pd.DataFrame(ret)
         cols = [f'{colname}_{i}_count' for i in range(len(ret.columns))]
